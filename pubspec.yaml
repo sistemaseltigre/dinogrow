@@ -16,6 +16,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   flame: ^1.8.2
   flame_forge2d: ^0.14.1+1
+  flutter_joystick: ^0.0.3
 
 dev_dependencies:
   flutter_test:
@@ -25,7 +26,12 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-  - assets/images/logo.jpeg
+  - assets/images/
   - assets/images/up/green/run/
   - assets/images/up/green/walk/
+  - assets/images/up/green/dead/
+  - assets/images/up/green/idle/
+  - assets/images/up/green/jump/
+  - assets/images/up/maps/01/
+  - assets/images/dinopad/
   - .env

@@ -5,7 +5,7 @@ class Floor extends BodyComponent {
   @override
   Body createBody() {
     final bodyDef = BodyDef(
-      position: Vector2(0, worldSize.y - .15),
+      position: Vector2(0, worldSize.y - 4.8),
       type: BodyType.static,
     );
 

@@ -1,5 +1,5 @@
-//import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dinogrow/pages/generatePhrase.dart';
 import 'package:dinogrow/pages/home.dart';
@@ -11,7 +11,11 @@ import 'package:dinogrow/pages/mini-games/mini_games.dart';
 import 'package:dinogrow/pages/mini-games/up/up.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((_) {
+    runApp(const MyApp());
+  });
 }
 
 final GoRouter _router = GoRouter(routes: <GoRoute>[
