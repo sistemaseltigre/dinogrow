@@ -10,7 +10,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
   final _formKey = GlobalKey<FormState>();
   final passwordController = TextEditingController();
   bool validationFailed = false;
@@ -25,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     _checkForSavedLogin().then((credentialsFound) {
       if (!credentialsFound) {
-        GoRouter.of(context).go("/setup");
+        GoRouter.of(context).push("/setup");
       } else {
         setState(() {
           _loading = false;
@@ -83,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           });
                           return;
                         }
-                        GoRouter.of(context).go("/home");
+                        GoRouter.of(context).push("/home");
                         return null;
                         // Validation
                       }),
@@ -140,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               TextButton(
                 onPressed: () {
-                  GoRouter.of(context).go("/setup");
+                  GoRouter.of(context).push("/setup");
                 },
                 child: const Text('OK'),
               ),

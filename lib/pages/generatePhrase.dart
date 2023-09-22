@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:go_router/go_router.dart';
 
+import '../ui/widgets/widgets.dart';
+
 class GeneratePhraseScreen extends StatefulWidget {
   const GeneratePhraseScreen({super.key});
 
@@ -12,7 +14,6 @@ class GeneratePhraseScreen extends StatefulWidget {
 
 class _GeneratePhraseScreenState extends State<GeneratePhraseScreen> {
   String _mnemonic = "";
-  Icon iconButton = const Icon(Icons.copy);
   bool _copied = false;
 
   @override
@@ -21,79 +22,74 @@ class _GeneratePhraseScreenState extends State<GeneratePhraseScreen> {
     _generateMnemonic();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Recovery Phrase")),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Flexible(
-            child: Container(
+      // appBar: AppBar(title: Text("Recovery Phrase")),
+      extendBodyBehindAppBar: true,
+      appBar: appBar(context),
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/ui/config_jungle_bg.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const SizedBox(height: 60),
+            Container(
               color: Colors.orange[700],
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
               child: const Text(
                 'Important! Copy and save the recovery phrase in a secure location. This cannot be recovered later.',
                 style: TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
             ),
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Center(
-                child: Container(
-                  padding: EdgeInsets.all(8),
-                  child: Text(
-                    _mnemonic,
-                    textAlign: TextAlign.justify,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: _mnemonic));
-                      setState(() {
-                        iconButton = const Icon(Icons.check);
-                      });
-                    },
-                    icon: iconButton,
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Checkbox(
-                    value: _copied,
-                    onChanged: (value) {
-                      setState(() {
-                        _copied = value!;
-                      });
-                    },
-                  ),
-                  const Text("I have stored the recovery phrase securely"),
-                ],
-              ),
-              ElevatedButton(
-                onPressed: _copied
-                    ? () {
-                        GoRouter.of(context).go("/passwordSetup/$_mnemonic");
-                      }
-                    : () {
-                        GoRouter.of(context).go("/");
+            TextBoxWidget(text: _mnemonic),
+            IntroButtonWidget(
+              text: 'Copy phrase',
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: _mnemonic));
+                const snackBar = SnackBar(
+                  content: Text('Copied!'),
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(snackBar);
+              },
+            ),
+            Container(
+                decoration: const BoxDecoration(color: Colors.black),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Checkbox(
+                      value: _copied,
+                      onChanged: (value) {
+                        setState(() {
+                          _copied = value!;
+                        });
                       },
-                child: Text(_copied ? 'Continue' : 'Go Back'),
-              )
-            ],
-          ),
-        ],
+                    ),
+                    const Text("I have stored the recovery phrase securely"),
+                  ],
+                )),
+            IntroButtonWidget(
+              text: _copied ? 'Continue' : 'Go Back',
+              onPressed: _copied
+                  ? () {
+                      GoRouter.of(context).push("/passwordSetup/$_mnemonic");
+                    }
+                  : () {
+                      GoRouter.of(context).push("/");
+                    },
+            ),
+            const SizedBox(height: 60),
+          ],
+        ),
       ),
     );
   }

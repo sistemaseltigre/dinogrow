@@ -24,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('DINOGROW'),
@@ -33,68 +32,57 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            
             // User card
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   children: [
-
                     const Text('User'),
-                    
-                    Text(_publicKey == null 
-                      ? 'Loading...'
-                      : '${_publicKey!.substring(0,4)}...${_publicKey!.substring(_publicKey!.length-3, _publicKey!.length)}'
-                    ),
-                    
+                    Text(_publicKey == null
+                        ? 'Loading...'
+                        : '${_publicKey!.substring(0, 4)}...${_publicKey!.substring(_publicKey!.length - 3, _publicKey!.length)}'),
                     Text(_balance ?? 'Loading...'),
-
                   ],
                 ),
-              ),  
+              ),
             ),
-            
+
             // menu card
             Card(
               child: Padding(
                 padding: EdgeInsets.all(8),
                 child: Column(
                   children: [
-                    
                     TextButton(
                       child: Text('My Dinogrow'),
                       onPressed: () {
                         // My Dinos button
                       },
                     ),
-
                     TextButton(
                       child: Text('Mini Games'),
-                      onPressed: () {  
-                        GoRouter.of(context).go("/mini_games");
+                      onPressed: () {
+                        GoRouter.of(context).push("/mini_games");
                       },
                     ),
-
                     TextButton(
                       child: Text('Wallet'),
                       onPressed: () {
                         // wallet button
                       },
                     ),
-
                     TextButton(
-                      child: Text('Ranking'), 
+                      child: Text('Ranking'),
                       onPressed: () {
                         // Ranking button
                       },
                     )
-
                   ],
                 ),
               ),
             ),
-            
+
             // logout card
             Card(
               child: Padding(
@@ -105,19 +93,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     IconButton(
                       icon: Icon(Icons.logout),
                       onPressed: () {
-                        GoRouter.of(context).go("/");
+                        GoRouter.of(context).push("/");
                       },
                     )
                   ],
                 ),
               ),
             ),
-            
           ],
         ),
       ),
     );
-
   }
 
   void _readPk() async {
