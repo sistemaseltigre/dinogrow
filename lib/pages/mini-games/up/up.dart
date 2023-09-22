@@ -88,23 +88,19 @@ class UpGame extends Forge2DGame with TapDetector {
   bool onTapUp(TapUpInfo info) {
     if (isLeftPressed) {
       isLeftPressed = false;
-      btnLeft.paint.color =
-          const Color.fromARGB(255, 182, 113, 113);
+      btnLeft.paint.color = const Color.fromARGB(255, 182, 113, 113);
     }
     if (isRightPressed) {
       isRightPressed = false;
-      btnRight.paint.color =
-          const Color.fromARGB(255, 182, 113, 113);
+      btnRight.paint.color = const Color.fromARGB(255, 182, 113, 113);
     }
     if (isJumpPressed) {
       isJumpPressed = false;
-      btnJump.paint.color =
-          const Color.fromARGB(255, 182, 113, 113);
+      btnJump.paint.color = const Color.fromARGB(255, 182, 113, 113);
     }
     if (isAttackPressed) {
       isAttackPressed = false;
-      btnAttack.paint.color =
-          const Color.fromARGB(255, 182, 113, 113);
+      btnAttack.paint.color = const Color.fromARGB(255, 182, 113, 113);
     }
 
     return true;
@@ -129,15 +125,14 @@ class UpGame extends Forge2DGame with TapDetector {
 
     add(Floor());
 
-
     //Testing
-      // Add instance of Box
-      final box = Box()
-        ..x = 0
-        ..y = 5.5;
-      await box.loadImage();
-      add(box);
-    
+    // Add instance of Box
+    final box = Box()
+      ..x = 0
+      ..y = 5.5;
+    await box.loadImage();
+    add(box);
+
     // add the player to the game
     add(dino);
 
@@ -195,7 +190,7 @@ class GameWidgetUp extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            GoRouter.of(context).go("/mini_games");
+            GoRouter.of(context).push("/mini_games");
           },
         ),
       ),

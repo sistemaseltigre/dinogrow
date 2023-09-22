@@ -9,25 +9,21 @@ class MiniGamesScreen extends StatefulWidget {
 }
 
 class _MiniGamesPageState extends State<MiniGamesScreen> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mini Games'),  
-      ),
-      body: Center(
-        child:Column(
-        children: [
-          TextButton(
-                      child: const Text('UP GAME'),
-                      onPressed: () {
-                        GoRouter.of(context).go("/mini_games/up");
-                      },
-                    ),
-        ]
+        appBar: AppBar(
+          title: const Text('Mini Games'),
         ),
-      )
-    );
+        body: Center(
+          child: Column(children: [
+            TextButton(
+              child: const Text('UP GAME'),
+              onPressed: () {
+                GoRouter.of(context).push("/mini_games/up");
+              },
+            ),
+          ]),
+        ));
   }
 }

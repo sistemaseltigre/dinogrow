@@ -3,7 +3,7 @@ description: 2D blockchain game about growing dinosaurs.
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.2 <4.0.0'
+  sdk: ">=3.0.2 <4.0.0"
 
 dependencies:
   flutter:
@@ -26,12 +26,13 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-  - assets/images/
-  - assets/images/up/green/run/
-  - assets/images/up/green/walk/
-  - assets/images/up/green/dead/
-  - assets/images/up/green/idle/
-  - assets/images/up/green/jump/
-  - assets/images/up/maps/01/
-  - assets/images/dinopad/
-  - .env
+    - assets/images/
+    - assets/images/up/green/run/
+    - assets/images/up/green/walk/
+    - assets/images/up/green/dead/
+    - assets/images/up/green/idle/
+    - assets/images/up/green/jump/
+    - assets/images/up/maps/01/
+    - assets/images/dinopad/
+    - assets/images/ui/
+    - .env
