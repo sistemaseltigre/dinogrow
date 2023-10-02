@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:bip39/bip39.dart' as bip39;
 
+import 'package:dinogrow/pages/setupPassword.dart';
 import '../ui/widgets/widgets.dart';
 
 class InputPhraseScreen extends StatefulWidget {
@@ -126,7 +126,14 @@ class _InputPhraseScreenState extends State<InputPhraseScreen> {
       String wordsString = _words.join(' ');
       final t = bip39.validateMnemonic(wordsString);
       if (t) {
-        GoRouter.of(context).push("/passwordSetup/$wordsString");
+        // GoRouter.of(context).push("/passwordSetup/$wordsString");
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) {
+            return SetupPasswordScreen(mnemonic: wordsString);
+          },
+        );
       } else {
         setState(() {
           validationFailed = true;

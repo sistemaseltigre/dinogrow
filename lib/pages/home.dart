@@ -4,6 +4,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solana/solana.dart';
 
+import 'package:dinogrow/pages/mini-games/mini_games.dart';
+import 'package:dinogrow/pages/comingSoon.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -24,86 +27,152 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('DINOGROW'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 108,
+          flexibleSpace: Column(
+            children: [
+              const SizedBox(height: 38),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Row(
+                    children: [
+                      const Text(
+                        'Wallet: ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 3),
+                      Expanded(
+                          child: Text(_publicKey == null
+                              ? 'Loading...'
+                              : '${_publicKey!.substring(0, 4)}...${_publicKey!.substring(_publicKey!.length - 3, _publicKey!.length)}')),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Balance: ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 3),
+                      Text(_balance ?? 'Loading...'),
+                      const SizedBox(width: 3),
+                      const Text('SOL'),
+                    ],
+                  ),
+                ),
+              ),
+              const TabBar(
+                tabs: [
+                  Tab(
+                    icon: Icon(Icons.pets),
+                    text: 'My Dino',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.videogame_asset),
+                    text: 'Games',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.wallet),
+                    text: 'Wallet',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.emoji_events),
+                    text: 'Ranking',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        body: const TabBarView(
           children: [
-            // User card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    const Text('User'),
-                    Text(_publicKey == null
-                        ? 'Loading...'
-                        : '${_publicKey!.substring(0, 4)}...${_publicKey!.substring(_publicKey!.length - 3, _publicKey!.length)}'),
-                    Text(_balance ?? 'Loading...'),
-                  ],
-                ),
-              ),
-            ),
-
-            // menu card
-            Card(
-              child: Padding(
-                padding: EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    TextButton(
-                      child: Text('My Dinogrow'),
-                      onPressed: () {
-                        // My Dinos button
-                      },
-                    ),
-                    TextButton(
-                      child: Text('Mini Games'),
-                      onPressed: () {
-                        GoRouter.of(context).push("/mini_games");
-                      },
-                    ),
-                    TextButton(
-                      child: Text('Wallet'),
-                      onPressed: () {
-                        // wallet button
-                      },
-                    ),
-                    TextButton(
-                      child: Text('Ranking'),
-                      onPressed: () {
-                        // Ranking button
-                      },
-                    )
-                  ],
-                ),
-              ),
-            ),
-
-            // logout card
-            Card(
-              child: Padding(
-                padding: EdgeInsets.all(8),
-                child: Row(
-                  children: [
-                    Text('Log Out'),
-                    IconButton(
-                      icon: Icon(Icons.logout),
-                      onPressed: () {
-                        GoRouter.of(context).push("/");
-                      },
-                    )
-                  ],
-                ),
-              ),
-            ),
+            ComingSoonScreen(),
+            MiniGamesScreen(),
+            ComingSoonScreen(),
+            ComingSoonScreen(),
           ],
         ),
       ),
     );
+
+    // Scaffold(
+    //   body: Padding(
+    //     padding: const EdgeInsets.all(16),
+    //     child: ListView(
+    //       children: [
+    //         // User card
+    //         Card(
+    //           child: Padding(
+    //             padding: const EdgeInsets.all(8),
+    //             child: Column(
+    //               children: [
+    //                 const Text('User'),
+    //                 Text(_publicKey == null
+    //                     ? 'Loading...'
+    //                     : '${_publicKey!.substring(0, 4)}...${_publicKey!.substring(_publicKey!.length - 3, _publicKey!.length)}'),
+    //                 Text(_balance ?? 'Loading...'),
+    //               ],
+    //             ),
+    //           ),
+    //         ),
+
+    //         // menu card
+    //         Card(
+    //           child: Padding(
+    //             padding: EdgeInsets.all(8),
+    //             child: Column(
+    //               children: [
+    //                 TextButton(
+    //                   child: Text('My Dinogrow'),
+    //                   onPressed: () {
+    //                     // My Dinos button
+    //                   },
+    //                 ),
+    //                 TextButton(
+    //                   child: Text('Mini Games'),
+    //                   onPressed: () {
+    //                     GoRouter.of(context).push("/mini_games");
+    //                   },
+    //                 ),
+    //                 TextButton(
+    //                   child: Text('Wallet'),
+    //                   onPressed: () {
+    //                     // wallet button
+    //                   },
+    //                 ),
+    //                 TextButton(
+    //                   child: Text('Ranking'),
+    //                   onPressed: () {
+    //                     // Ranking button
+    //                   },
+    //                 )
+    //               ],
+    //             ),
+    //           ),
+    //         ),
+
+    //         // logout card
+    //         Card(
+    //           child: Padding(
+    //             padding: EdgeInsets.all(8),
+    //             child: Row(
+    //               children: [
+    //                 Text('Log Out'),
+    //                 IconButton(
+    //                   icon: Icon(Icons.logout),
+    //                   onPressed: () {
+    //                     GoRouter.of(context).push("/");
+    //                   },
+    //                 )
+    //               ],
+    //             ),
+    //           ),
+    //         ),
+    //       ],
+    //     ),
+    //   ),
+    // );
   }
 
   void _readPk() async {

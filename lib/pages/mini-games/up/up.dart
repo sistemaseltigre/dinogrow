@@ -190,7 +190,7 @@ class GameWidgetUp extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            GoRouter.of(context).push("/mini_games");
+            GoRouter.of(context).pop();
           },
         ),
       ),

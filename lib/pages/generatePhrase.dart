@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:go_router/go_router.dart';
 
+import 'package:dinogrow/pages/setupPassword.dart';
 import '../ui/widgets/widgets.dart';
 
 class GeneratePhraseScreen extends StatefulWidget {
@@ -81,7 +82,14 @@ class _GeneratePhraseScreenState extends State<GeneratePhraseScreen> {
               text: _copied ? 'Continue' : 'Go Back',
               onPressed: _copied
                   ? () {
-                      GoRouter.of(context).push("/passwordSetup/$_mnemonic");
+                      // GoRouter.of(context).push("/passwordSetup/$_mnemonic");
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) {
+                          return SetupPasswordScreen(mnemonic: _mnemonic);
+                        },
+                      );
                     }
                   : () {
                       GoRouter.of(context).push("/");
