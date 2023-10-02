@@ -18,7 +18,7 @@ class _MiniGamesPageState extends State<MiniGamesScreen> {
         height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/ui/intro_jungle_bg.png"),
+            image: AssetImage("assets/images/ui/config_jungle_bg.jpg"),
             fit: BoxFit.cover,
           ),
         ),

@@ -88,6 +88,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   });
                                   return;
                                 }
+
+                                while (GoRouter.of(context).canPop() == true) {
+                                  GoRouter.of(context).pop();
+                                }
                                 GoRouter.of(context).pushReplacement("/home");
                                 return null;
                                 // Validation

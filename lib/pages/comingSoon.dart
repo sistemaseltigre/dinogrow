@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../ui/widgets/widgets.dart';
 
@@ -15,14 +16,24 @@ class ComingSoonScreen extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        child: const Center(
+        child: Center(
           child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                IntroLogoWidget(),
-                SizedBox(height: 30),
-                TextBoxWidget(text: 'Coming soon ^-^'),
+                const IntroLogoWidget(),
+                const SizedBox(height: 30),
+                const TextBoxWidget(text: 'Coming soon ^-^'),
+                const SizedBox(height: 30),
+                IntroButtonWidget(
+                  text: 'Log out',
+                  onPressed: () {
+                    while (GoRouter.of(context).canPop() == true) {
+                      GoRouter.of(context).pop();
+                    }
+                    GoRouter.of(context).pushReplacement("/");
+                  },
+                )
               ]),
         ),
       ),
