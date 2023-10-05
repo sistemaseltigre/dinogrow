@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:go_router/go_router.dart';
 import 'package:solana/solana.dart';
 
 import 'package:dinogrow/pages/mini-games/mini_games.dart';
@@ -31,54 +30,72 @@ class _HomeScreenState extends State<HomeScreen> {
       length: 4,
       child: Scaffold(
         appBar: AppBar(
-          toolbarHeight: 108,
+          backgroundColor: const Color.fromRGBO(241, 189, 57, 1),
+          elevation: 6,
+          toolbarHeight: 120,
           flexibleSpace: Column(
             children: [
               const SizedBox(height: 38),
               Card(
+                color: Colors.white,
+                shadowColor: Colors.white,
+                elevation: 9,
                 child: Padding(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
                       const Text(
                         'Wallet: ',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       const SizedBox(width: 3),
                       Expanded(
-                          child: Text(_publicKey == null
-                              ? 'Loading...'
-                              : '${_publicKey!.substring(0, 4)}...${_publicKey!.substring(_publicKey!.length - 3, _publicKey!.length)}')),
+                          child: Text(
+                        _publicKey == null
+                            ? 'Loading...'
+                            : '${_publicKey!.substring(0, 6)}...${_publicKey!.substring(_publicKey!.length - 6, _publicKey!.length)}',
+                        style: const TextStyle(color: Colors.black),
+                      )),
                       const SizedBox(width: 12),
                       const Text(
                         'Balance: ',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       const SizedBox(width: 3),
-                      Text(_balance ?? 'Loading...'),
+                      Text(_balance ?? 'Loading...',
+                          style: const TextStyle(color: Colors.black)),
                       const SizedBox(width: 3),
-                      const Text('SOL'),
+                      const Text('SOL',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black)),
                     ],
                   ),
                 ),
               ),
               const TabBar(
+                unselectedLabelColor: Color.fromRGBO(34, 38, 59, 1),
+                labelColor: Colors.white,
+                indicatorColor: Colors.white,
+                indicatorSize: TabBarIndicatorSize.tab,
                 tabs: [
-                  Tab(
-                    icon: Icon(Icons.pets),
-                    text: 'My Dino',
-                  ),
                   Tab(
                     icon: Icon(Icons.videogame_asset),
                     text: 'Games',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.emoji_events),
+                    text: 'Ranking',
                   ),
                   Tab(
                     icon: Icon(Icons.wallet),
                     text: 'Wallet',
                   ),
                   Tab(
-                    icon: Icon(Icons.emoji_events),
-                    text: 'Ranking',
+                    icon: Icon(Icons.pets),
+                    text: 'My Dino',
                   ),
                 ],
               ),
@@ -87,8 +104,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: const TabBarView(
           children: [
-            ComingSoonScreen(),
             MiniGamesScreen(),
+            ComingSoonScreen(),
             ComingSoonScreen(),
             ComingSoonScreen(),
           ],

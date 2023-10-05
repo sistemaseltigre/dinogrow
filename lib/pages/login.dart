@@ -71,31 +71,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           TextFormField(
-                              controller: passwordController,
-                              obscureText: true,
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                filled: true,
-                                fillColor: Colors.black,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
+                            controller: passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              filled: true,
+                              fillColor: Colors.black,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              validator: (value) {
-                                if (value != password) {
-                                  setState(() {
-                                    validationFailed = true;
-                                  });
-                                  return;
-                                }
-
-                                while (GoRouter.of(context).canPop() == true) {
-                                  GoRouter.of(context).pop();
-                                }
-                                GoRouter.of(context).pushReplacement("/home");
-                                return null;
-                                // Validation
-                              }),
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           Text(validationFailed ? 'Invalid Password' : '',
                               style: const TextStyle(color: Colors.red)),
@@ -160,8 +146,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _onSubmit() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    setState(() {
+      _loading = true;
+    });
+    if (passwordController.text == password) {
+      await Future.delayed(const Duration(seconds: 1));
+      while (GoRouter.of(context).canPop() == true) {
+        GoRouter.of(context).pop();
+      }
+      GoRouter.of(context).pushReplacement("/home");
+    } else {
+      setState(() {
+        validationFailed = true;
+      });
+      setState(() {
+        _loading = false;
+      });
     }
   }
 }
