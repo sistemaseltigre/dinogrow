@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dinogrow/pages/generatePhrase.dart';
+import 'package:dinogrow/pages/generate_phrase.dart';
 import 'package:dinogrow/pages/home.dart';
-import 'package:dinogrow/pages/inputPhrase.dart';
+import 'package:dinogrow/pages/input_phrase.dart';
 import 'package:dinogrow/pages/login.dart';
-import 'package:dinogrow/pages/setupAccount.dart';
-import 'package:dinogrow/pages/setupPassword.dart';
+import 'package:dinogrow/pages/setup_account.dart';
+import 'package:dinogrow/pages/setup_password.dart';
 import 'package:dinogrow/pages/mini-games/mini_games.dart';
 import 'package:dinogrow/pages/mini-games/up/up.dart';
 
