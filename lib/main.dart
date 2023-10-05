@@ -9,6 +9,7 @@ import 'package:dinogrow/pages/setup_account.dart';
 import 'package:dinogrow/pages/setup_password.dart';
 import 'package:dinogrow/pages/mini-games/mini_games.dart';
 import 'package:dinogrow/pages/mini-games/up/up.dart';
+import 'package:dinogrow/pages/mini-games/coming_soon.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +59,11 @@ final GoRouter _router = GoRouter(routes: <GoRoute>[
       path: '/mini_games/up',
       builder: (context, state) {
         return GameWidgetUp(game: UpGame());
+      }),
+  GoRoute(
+      path: '/mini_games/comming_soon',
+      builder: (context, state) {
+        return const ComingSoonScreen();
       }),
 ]);
 

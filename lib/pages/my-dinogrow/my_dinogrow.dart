@@ -13,7 +13,15 @@ class MydinogrowScreen extends StatefulWidget {
 
 class _MydinogrowScreenState extends State<MydinogrowScreen> {
   final storage = const FlutterSecureStorage();
-  final mintContent = (_onClaim) => [
+  final filters = [
+    Colors.white,
+    ...List.generate(
+      Colors.primaries.length,
+      (index) => Colors.primaries[(index * 4) % Colors.primaries.length],
+    )
+  ];
+
+  List<Widget> mintContent(_onClaim) => [
         const IntroLogoWidget(),
         const SizedBox(height: 30),
         IntroButtonWidget(
@@ -32,14 +40,34 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         )
       ];
 
-  final myDinosContent = [
-    const GameCardWidget(
-      text: 'Mini Dino',
-      route: "/mini_games/up",
-    ),
-    const SizedBox(height: 30),
-    const TextBoxWidget(text: "Hi ^.^ I'm Mini Dino"),
-  ];
+  List<Widget> myDinosContent(returnImageColorFc) => [
+        SizedBox(
+          height: 90,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            shrinkWrap: true,
+            itemCount: 12,
+            itemBuilder: (context, index) {
+              // final item = items[index];
+
+              return Container(
+                margin: const EdgeInsets.only(right: 12),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(45),
+                  child: returnImageColorFc(index),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 30),
+        const GameCardWidget(
+          text: 'Mini Dino',
+          route: "/mini_games/up",
+        ),
+        const SizedBox(height: 30),
+        const TextBoxWidget(text: "Hi ^.^ I'm Mini Dino"),
+      ];
 
   bool showDinos = false;
 
@@ -62,7 +90,9 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  ...(showDinos ? myDinosContent : mintContent(onClaim)),
+                  ...(showDinos
+                      ? myDinosContent(returnImageColor)
+                      : mintContent(onClaim)),
                   const SizedBox(height: 30),
                   IntroButtonWidget(
                     text: 'Log out',
@@ -88,5 +118,26 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
     setState(() {
       showDinos = true;
     });
+  }
+
+  Image returnImageColor(int index) {
+    if (index == 0) {
+      return Image.asset(
+        'assets/images/logo.jpeg',
+        width: 90,
+        height: 90,
+        fit: BoxFit.cover,
+        colorBlendMode: BlendMode.color,
+      );
+    }
+
+    return Image.asset(
+      'assets/images/logo.jpeg',
+      width: 90,
+      height: 90,
+      fit: BoxFit.cover,
+      colorBlendMode: BlendMode.color,
+      color: filters[index],
+    );
   }
 }

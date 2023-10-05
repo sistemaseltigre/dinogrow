@@ -30,8 +30,14 @@ class _MiniGamesPageState extends State<MiniGamesScreen> {
                     text: 'UP',
                     route: "/mini_games/up",
                   ),
-                  GameCardWidget(text: 'COMING SOON'),
-                  GameCardWidget(text: 'COMING SOON'),
+                  GameCardWidget(
+                    text: 'COMING SOON',
+                    route: "/mini_games/comming_soon",
+                  ),
+                  GameCardWidget(
+                    text: 'COMING SOON',
+                    route: "/mini_games/comming_soon",
+                  ),
                 ],
               )),
         ),

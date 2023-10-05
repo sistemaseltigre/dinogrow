@@ -7,7 +7,6 @@ import 'package:dinogrow/pages/my-dinogrow/my_dinogrow.dart';
 import 'package:dinogrow/pages/mini-games/mini_games.dart';
 import 'package:dinogrow/pages/ranking/ranking.dart';
 import 'package:dinogrow/pages/wallet/wallet.dart';
-// import 'package:dinogrow/pages/coming_soon.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

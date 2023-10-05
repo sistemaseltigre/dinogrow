@@ -49,6 +49,9 @@ class RankingScreen extends StatelessWidget {
                         shrinkWrap: true,
                         itemCount: items.length,
                         itemBuilder: (context, index) {
+                          items.sort((a, b) => double.parse(b.score)
+                              .compareTo(double.parse(a.score)));
+
                           final item = items[index];
 
                           return ListTile(
