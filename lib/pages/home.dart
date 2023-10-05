@@ -5,6 +5,7 @@ import 'package:solana/solana.dart';
 
 import 'package:dinogrow/pages/mini-games/mini_games.dart';
 import 'package:dinogrow/pages/ranking/ranking.dart';
+import 'package:dinogrow/pages/wallet/wallet.dart';
 import 'package:dinogrow/pages/comingSoon.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -103,13 +104,21 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            const MiniGamesScreen(),
-            RankingScreen(),
-            const ComingSoonScreen(),
-            const ComingSoonScreen(),
-          ],
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/images/ui/intro_jungle_bg.png"),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: TabBarView(
+            children: [
+              const MiniGamesScreen(),
+              RankingScreen(),
+              WalletScreen(address: _publicKey, balance: _balance),
+              const ComingSoonScreen(),
+            ],
+          ),
         ),
       ),
     );

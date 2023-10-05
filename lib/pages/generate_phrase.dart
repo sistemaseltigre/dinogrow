@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:go_router/go_router.dart';
 
-import 'package:dinogrow/pages/setupPassword.dart';
+import 'package:dinogrow/pages/setup_password.dart';
 import '../ui/widgets/widgets.dart';
 
 class GeneratePhraseScreen extends StatefulWidget {

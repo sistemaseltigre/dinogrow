@@ -14,13 +14,10 @@ class RankingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/images/ui/intro_jungle_bg.png"),
-            fit: BoxFit.cover,
-          ),
-        ),
+        height: MediaQuery.of(context).size.height,
+        decoration: const BoxDecoration(color: Colors.transparent),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Center(

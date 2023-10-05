@@ -14,14 +14,10 @@ class _MiniGamesPageState extends State<MiniGamesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Container(
         height: MediaQuery.of(context).size.height,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/images/ui/config_jungle_bg.jpg"),
-            fit: BoxFit.cover,
-          ),
-        ),
+        decoration: const BoxDecoration(color: Colors.transparent),
         child: const Center(
           child: Padding(
               padding: EdgeInsets.all(12),
