@@ -33,7 +33,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
           color: Colors.orange[700],
           padding: const EdgeInsets.all(8),
           child: const Text(
-            'Wait ... you must to have a Dino to start play our games, so "Claim your Dino" is our last step to auto-generate your first NFT free!',
+            'Wait ... you must to have a Dino to start play our games, so "Claim your Dino" is our last step to auto-generate your first NFT!',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             textAlign: TextAlign.center,
           ),

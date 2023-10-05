@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bip39/bip39.dart' as bip39;
 
-import 'package:dinogrow/pages/setupPassword.dart';
+import 'package:dinogrow/pages/setup_password.dart';
 import '../ui/widgets/widgets.dart';
 
 class InputPhraseScreen extends StatefulWidget {
