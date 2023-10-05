@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 
+import '../ui/widgets/widgets.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -41,73 +43,68 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     return Scaffold(
       body: SingleChildScrollView(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const SizedBox(height: 40),
-          Center(
-            child: Image.asset(
-              'assets/images/logo.jpeg',
-              width: 200,
+        child: Container(
+          height: MediaQuery.of(context).size.height,
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/images/ui/intro_jungle_bg.png"),
+              fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.only(left: 16),
-            child: Text(
-              'Login',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Form(
-            key: _formKey,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextFormField(
-                      controller: passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 60),
+                    const IntroLogoWidget(),
+                    const SizedBox(height: 30),
+                    const TextBoxWidget(
+                        text:
+                            'To continue, please enter your current password'),
+                    const SizedBox(height: 16),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextFormField(
+                            controller: passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              filled: true,
+                              fillColor: Colors.black,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(validationFailed ? 'Invalid Password' : '',
+                              style: const TextStyle(color: Colors.red)),
+                          const SizedBox(height: 8),
+                          IntroButtonWidget(
+                            text: 'Login',
+                            onPressed: _onSubmit,
+                          ),
+                          const SizedBox(height: 32),
+                          IntroButtonWidget(
+                            text: 'Use different Account',
+                            onPressed: () {
+                              onDifferentAccountPressed(context);
+                            },
+                          ),
+                        ],
                       ),
-                      validator: (value) {
-                        if (value != password) {
-                          setState(() {
-                            validationFailed = true;
-                          });
-                          return;
-                        }
-                        GoRouter.of(context).push("/home");
-                        return null;
-                        // Validation
-                      }),
-                  const SizedBox(height: 8),
-                  Text(validationFailed ? 'Invalid Password' : '',
-                      style: const TextStyle(color: Colors.red)),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: _onSubmit,
-                    child: const Text('Login'),
-                  ),
-                  const SizedBox(height: 32),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        onDifferentAccountPressed(context);
-                      },
-                      child: const Text('Use different Account'),
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(height: 60),
+                  ]),
             ),
           ),
-        ]),
+        ),
       ),
     );
   }
@@ -149,8 +146,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _onSubmit() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    setState(() {
+      _loading = true;
+    });
+    if (passwordController.text == password) {
+      await Future.delayed(const Duration(seconds: 1));
+      while (GoRouter.of(context).canPop() == true) {
+        GoRouter.of(context).pop();
+      }
+      GoRouter.of(context).pushReplacement("/home");
+    } else {
+      setState(() {
+        validationFailed = true;
+      });
+      setState(() {
+        _loading = false;
+      });
     }
   }
 }

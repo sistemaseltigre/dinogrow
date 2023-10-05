@@ -63,7 +63,7 @@ class _IntroLogoWidgetState extends State<IntroLogoWidget>
           borderRadius: BorderRadius.circular(120),
           child: Image.asset(
             'assets/images/logo.jpeg',
-            width: 240,
+            width: 210,
           ),
         ),
       ),
