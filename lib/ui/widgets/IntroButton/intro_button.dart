@@ -15,6 +15,7 @@ class IntroButtonWidget extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
+        minimumSize: const Size.fromHeight(50),
         backgroundColor: const Color.fromRGBO(241, 189, 57, 1),
         padding: const EdgeInsets.all(18),
         shadowColor: Colors.purple,

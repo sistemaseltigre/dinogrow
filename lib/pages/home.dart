@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solana/solana.dart';
 
 import 'package:dinogrow/pages/mini-games/mini_games.dart';
+import 'package:dinogrow/pages/ranking/ranking.dart';
 import 'package:dinogrow/pages/comingSoon.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -102,12 +103,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: [
-            MiniGamesScreen(),
-            ComingSoonScreen(),
-            ComingSoonScreen(),
-            ComingSoonScreen(),
+            const MiniGamesScreen(),
+            RankingScreen(),
+            const ComingSoonScreen(),
+            const ComingSoonScreen(),
           ],
         ),
       ),
