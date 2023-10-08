@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../ui/widgets/widgets.dart';
 
 class WalletScreen extends StatelessWidget {
-  final String? address;
+  final String address;
   final String? balance;
 
-  const WalletScreen({super.key, this.address, this.balance});
+  const WalletScreen({super.key, required this.address, this.balance});
 
   @override
   Widget build(BuildContext context) {
@@ -23,23 +24,44 @@ class WalletScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Row(children: [
-                    Expanded(
-                        child: TextBoxWidget(text: 'Your address: $address')),
-                    const SizedBox(width: 12),
-                    IntroButtonWidget(
-                      text: 'Copy',
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: address ?? ''));
-                        const snackBar = SnackBar(
-                          content: Text('Copied!'),
-                        );
+                  Container(
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: QrImageView(
+                        data: address,
+                        version: QrVersions.auto,
+                        size: 200.0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    color: Colors.black,
+                    child: Padding(
+                      padding: const EdgeInsets.all(3),
+                      child: Text(
+                        "Your address: $address",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  IntroButtonWidget(
+                    text: 'Copy',
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: address));
+                      const snackBar = SnackBar(
+                        content: Text('Copied!'),
+                      );
 
-                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                      },
-                      size: 'fit',
-                    )
-                  ]),
+                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                    },
+                  ),
                   const SizedBox(height: 30),
                   Row(children: [
                     Expanded(
