@@ -3,7 +3,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:solana/solana.dart';
+import 'package:solana_web3/solana_web3.dart';
 
+import '../../anchor_types/score_parameters.dart' as anchor_types_parameters;
 import '../../ui/widgets/widgets.dart';
 
 import 'dart:math';
@@ -36,6 +38,10 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         IntroButtonWidget(
           text: 'Claim your Dino',
           onPressed: createNft,
+        ),
+        IntroButtonWidget(
+          text: 'Save Score',
+          onPressed: saveScore,
         ),
         const SizedBox(height: 30),
         Container(
@@ -183,7 +189,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
     print(nftMintPda.toBase58());
 
     final ataProgramId = solana.Ed25519HDPublicKey.fromBase58(
-      solana.AssociatedTokenAccountProgram.programId);
+        solana.AssociatedTokenAccountProgram.programId);
 
     final systemProgramId =
         solana.Ed25519HDPublicKey.fromBase58(solana.SystemProgram.programId);
@@ -253,13 +259,79 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
           solana_encoder.AccountMeta.readonly(
               pubKey: systemProgramId, isSigner: false),
           solana_encoder.AccountMeta.readonly(
-              pubKey: tokenProgramId, isSigner: false),     
+              pubKey: tokenProgramId, isSigner: false),
           solana_encoder.AccountMeta.readonly(
               pubKey: metaplexProgramIdPublicKey, isSigner: false),
           solana_encoder.AccountMeta.writeable(
               pubKey: masterEditionAccountPda, isSigner: false),
           solana_encoder.AccountMeta.writeable(
               pubKey: nftMetadataPda, isSigner: false),
+        ],
+        namespace: 'global',
+      ),
+    ];
+    final message = solana.Message(instructions: instructions);
+    final signature = await client.sendAndConfirmTransaction(
+      message: message,
+      signers: [mainWalletSolana],
+      commitment: solana.Commitment.confirmed,
+    );
+    print('Tx successful with hash: $signature');
+  }
+
+  saveScore() async {
+     await dotenv.load(fileName: ".env");
+
+    SolanaClient? client;
+    client = SolanaClient(
+      rpcUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
+      websocketUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_WSS'].toString()),
+    );
+    const storage = FlutterSecureStorage();
+
+    final mainWalletKey = await storage.read(key: 'mnemonic');
+
+    final mainWalletSolana = await solana.Ed25519HDKeyPair.fromMnemonic(
+      mainWalletKey!,
+    );
+
+    const programId = '9V9ttZw7WTYW78Dx3hi2hV7V76PxAs5ZwbCkGi7qq8FW';
+    final systemProgramId =
+        solana.Ed25519HDPublicKey.fromBase58(solana.SystemProgram.programId);
+
+    //direccion mint del DINO
+    final dinoTest = solana.Ed25519HDPublicKey.fromBase58("2tGzpAbJVuB91dzJbUG7m45F88WqswcbznqP2KBZcurw");
+
+    final programIdPublicKey = solana.Ed25519HDPublicKey.fromBase58(programId);
+
+        final gscorePda = await solana.Ed25519HDPublicKey.findProgramAddress(
+        programId: programIdPublicKey,
+        seeds: [
+          solana_buffer.Buffer.fromString("score"),
+          mainWalletSolana.publicKey.bytes,
+          dinoTest.bytes,
+          solana_buffer.Buffer.fromInt32(1),
+        ]);
+    print(gscorePda.toBase58());
+
+
+      final instructions = [
+      await solana_anchor.AnchorInstruction.forMethod(
+        programId: programIdPublicKey,
+        method: 'savescore',
+        arguments: solana_encoder.ByteArray(anchor_types_parameters.ScoreArguments(
+          game: 1,
+          score: BigInt.from(100),
+        ).toBorsh().toList()),
+        accounts: <solana_encoder.AccountMeta>[
+          solana_encoder.AccountMeta.writeable(
+              pubKey: gscorePda, isSigner: false),
+          solana_encoder.AccountMeta.writeable(
+              pubKey: mainWalletSolana.publicKey, isSigner: true),
+          solana_encoder.AccountMeta.writeable(
+              pubKey: dinoTest, isSigner: false),
+                solana_encoder.AccountMeta.readonly(
+              pubKey: systemProgramId, isSigner: false),
         ],
         namespace: 'global',
       ),
