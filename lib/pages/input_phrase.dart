@@ -66,53 +66,57 @@ class _InputPhraseScreenState extends State<InputPhraseScreen> {
                 fit: BoxFit.cover,
               ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const SizedBox(height: 60),
-                const TextBoxWidget(text: 'Please enter your recovery phrase'),
-                Center(
-                  child: Form(
-                    key: _formKey,
-                    child: SizedBox(
-                        width: 300,
-                        child: GridView.count(
-                          padding: const EdgeInsets.all(3),
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 3,
-                          shrinkWrap: true,
-                          crossAxisCount: 3,
-                          children: List.generate(12, (index) {
-                            return SizedBox(
-                              height: 50,
-                              child: TextFormField(
-                                controller: controllers[index],
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Colors.black,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(height: 60),
+                  const TextBoxWidget(
+                      text: 'Please enter your recovery phrase'),
+                  Center(
+                    child: Form(
+                      key: _formKey,
+                      child: SizedBox(
+                          width: 300,
+                          child: GridView.count(
+                            padding: const EdgeInsets.all(3),
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 3,
+                            shrinkWrap: true,
+                            crossAxisCount: 3,
+                            children: List.generate(12, (index) {
+                              return SizedBox(
+                                height: 50,
+                                child: TextFormField(
+                                  controller: controllers[index],
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: Colors.black,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    hintText: '${index + 1}',
                                   ),
-                                  hintText: '${index + 1}',
+                                  textInputAction: TextInputAction.next,
                                 ),
-                                textInputAction: TextInputAction.next,
-                              ),
-                            );
-                          }),
-                        )),
+                              );
+                            }),
+                          )),
+                    ),
                   ),
-                ),
-                validationFailed
-                    ? const TextBoxWidget(text: 'Invalid keyphrase')
-                    : const SizedBox(),
-                IntroButtonWidget(
-                  text: 'Continue',
-                  onPressed: () {
-                    _onSubmit(context);
-                  },
-                ),
-                const SizedBox(height: 32),
-              ],
+                  validationFailed
+                      ? const TextBoxWidget(text: 'Invalid keyphrase')
+                      : const SizedBox(),
+                  IntroButtonWidget(
+                    text: 'Continue',
+                    onPressed: () {
+                      _onSubmit(context);
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         ),

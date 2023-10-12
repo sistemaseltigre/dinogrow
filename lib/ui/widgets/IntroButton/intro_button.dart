@@ -4,12 +4,14 @@ class IntroButtonWidget extends StatelessWidget {
   final VoidCallback? onPressed;
   final String text;
   final String? size;
+  final String? variant;
 
   const IntroButtonWidget({
     super.key,
     this.onPressed,
     required this.text,
     this.size,
+    this.variant,
   });
 
   @override
@@ -18,7 +20,9 @@ class IntroButtonWidget extends StatelessWidget {
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         minimumSize: size == 'fit' ? null : const Size.fromHeight(50),
-        backgroundColor: const Color.fromRGBO(241, 189, 57, 1),
+        backgroundColor: variant == 'disabled'
+            ? Colors.grey
+            : const Color.fromRGBO(241, 189, 57, 1),
         padding: const EdgeInsets.all(18),
         shadowColor: Colors.purple,
         elevation: 3,

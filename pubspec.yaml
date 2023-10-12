@@ -19,6 +19,7 @@ dependencies:
   flutter_joystick: ^0.0.3
   url_launcher: ^6.1.14
   qr_flutter: ^4.1.0
+  http: ^0.13.6
 
 dev_dependencies:
   flutter_test:

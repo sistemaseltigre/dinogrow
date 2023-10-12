@@ -115,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const MiniGamesScreen(),
               RankingScreen(),
-              const MydinogrowScreen(),
+              MydinogrowScreen(address: _publicKey ?? ''),
               WalletScreen(address: _publicKey ?? '', balance: _balance),
             ],
           ),
