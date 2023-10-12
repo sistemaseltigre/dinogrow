@@ -18,8 +18,10 @@ import '../../anchor_types/nft_parameters.dart' as anchor_types;
 
 class MydinogrowScreen extends StatefulWidget {
   final String address;
+  final Function getBalance;
 
-  const MydinogrowScreen({super.key, required this.address});
+  const MydinogrowScreen(
+      {super.key, required this.address, required this.getBalance});
 
   @override
   State<MydinogrowScreen> createState() => _MydinogrowScreenState();
@@ -120,12 +122,26 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
           urlImage:
               userNfts.isNotEmpty ? userNfts[nftSelected]['imageUrl'] : '',
         ),
+        const SizedBox(height: 12),
+        Container(
+          color: Colors.black,
+          child: const Padding(
+            padding: EdgeInsets.all(3),
+            child: Text(
+              "Hi ^.^ Please select one Dino to use as character when you play minigames",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ),
         const SizedBox(height: 30),
         IntroButtonWidget(
           text: 'Claim other Dino',
-          onPressed: createNft,
+          onPressed: beforeOtherNft,
         ),
-        // TextBoxWidget(text: "Hi ^.^ I'm $nameNft"),
       ];
 
   bool showDinos = false;
@@ -206,7 +222,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
 
   Future<void> fetchNfts() async {
     try {
-      // print('widget.address: ${widget.address}');
+      print('widget.address: ${widget.address}');
       setState(() {
         _loading = true;
         userNfts = [];
@@ -223,12 +239,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
           },
           body: jsonEncode({
             "method": "qn_fetchNFTs",
-            "params": {
-              "wallet": widget.address,
-              // "AUMbL5J7wQuNxV7tpj1mq4SzPxqReDA6VzfkCzpJjcUi",
-              "page": 1,
-              "perPage": 10
-            }
+            "params": {"wallet": widget.address, "page": 1, "perPage": 10}
           }));
 
       final dataResponse = jsonDecode(response.body);
@@ -242,15 +253,49 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _loading = false;
+        Future.delayed(const Duration(seconds: 1), () async {
+          setState(() {
+            _loading = false;
+          });
+          Future.delayed(const Duration(seconds: 2), () async {
+            widget.getBalance();
+          });
         });
       }
     }
   }
 
+  beforeOtherNft() {
+    showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Claim other Dino'),
+        content: const Text(
+            'Before to continue, are you sure to claim other Dino? Remember the transaction has a variable cost so please confirm if you have at least 0.05 SOL in your wallet balance.'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'Cancel'),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              createNft();
+              Navigator.pop(context, 'OK');
+            },
+            child: const Text('Confimr'),
+          ),
+        ],
+      ),
+    );
+  }
+
   createNft() async {
     try {
+      if (_loading) {
+        // avoid double call
+        return null;
+      }
+
       if (mounted) {
         setState(() {
           _loading = true;
@@ -389,6 +434,13 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
       );
       print('Tx successful with hash: $signature');
       fetchNfts();
+    } catch (e) {
+      final snackBar = SnackBar(
+        content: Text('Error: $e', style: const TextStyle(color: Colors.white)),
+        backgroundColor: Colors.red,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
     } finally {
       if (mounted) {
         setState(() {

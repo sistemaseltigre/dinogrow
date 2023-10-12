@@ -14,7 +14,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final passwordController = TextEditingController();
-  bool validationFailed = false;
   String? password;
   bool _loading = true;
   String? key;
@@ -83,8 +82,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text(validationFailed ? 'Invalid Password' : '',
-                              style: const TextStyle(color: Colors.red)),
                           const SizedBox(height: 8),
                           IntroButtonWidget(
                             text: 'Login',
@@ -156,9 +153,16 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       GoRouter.of(context).pushReplacement("/home");
     } else {
-      setState(() {
-        validationFailed = true;
-      });
+      const snackBar = SnackBar(
+        content: Text(
+          'Error: Invalid Password',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.red,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
       setState(() {
         _loading = false;
       });

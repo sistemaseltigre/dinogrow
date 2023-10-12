@@ -66,7 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       const SizedBox(width: 3),
-                      Text(_balance ?? 'Loading...',
+                      Text(
+                          _balance != null
+                              ? double.parse(_balance ?? '0').toStringAsFixed(2)
+                              : 'Loading...',
                           style: const TextStyle(color: Colors.black)),
                       const SizedBox(width: 3),
                       const Text('SOL',
@@ -115,8 +118,12 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const MiniGamesScreen(),
               RankingScreen(),
-              MydinogrowScreen(address: _publicKey ?? ''),
-              WalletScreen(address: _publicKey ?? '', balance: _balance),
+              MydinogrowScreen(
+                  address: _publicKey ?? '', getBalance: () => _getBalance()),
+              WalletScreen(
+                  address: _publicKey ?? '',
+                  balance: _balance,
+                  getBalance: () => _getBalance()),
             ],
           ),
         ),

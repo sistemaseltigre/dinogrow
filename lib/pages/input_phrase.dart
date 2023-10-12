@@ -13,7 +13,6 @@ class InputPhraseScreen extends StatefulWidget {
 
 class _InputPhraseScreenState extends State<InputPhraseScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _words = List<String>.filled(12, '');
   bool validationFailed = false;
   var controllers =
       List<TextEditingController>.generate(12, (i) => TextEditingController());
@@ -126,9 +125,18 @@ class _InputPhraseScreenState extends State<InputPhraseScreen> {
 
   void _onSubmit(context) async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      String wordsString = _words.join(' ');
+      // _formKey.currentState!.save();
+      // String wordsString = _words.join(' ');
+      String wordsString = '';
+
+      for (var controller in controllers) {
+        wordsString = '$wordsString${controller.text} ';
+      }
+
+      wordsString = wordsString.substring(0, wordsString.length - 1);
+
       final t = bip39.validateMnemonic(wordsString);
+
       if (t) {
         // GoRouter.of(context).push("/passwordSetup/$wordsString");
         showModalBottomSheet(
