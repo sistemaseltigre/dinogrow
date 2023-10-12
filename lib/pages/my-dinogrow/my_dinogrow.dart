@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import 'package:solana/dto.dart';
 import 'package:solana/solana.dart';
 import 'package:solana_web3/solana_web3.dart';
 
@@ -42,6 +45,10 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         IntroButtonWidget(
           text: 'Save Score',
           onPressed: saveScore,
+        ),
+        IntroButtonWidget(
+          text: 'Get Ranking',
+          onPressed: getRanking,
         ),
         const SizedBox(height: 30),
         Container(
@@ -280,7 +287,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
   }
 
   saveScore() async {
-     await dotenv.load(fileName: ".env");
+    await dotenv.load(fileName: ".env");
 
     SolanaClient? client;
     client = SolanaClient(
@@ -300,11 +307,12 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         solana.Ed25519HDPublicKey.fromBase58(solana.SystemProgram.programId);
 
     //direccion mint del DINO
-    final dinoTest = solana.Ed25519HDPublicKey.fromBase58("2tGzpAbJVuB91dzJbUG7m45F88WqswcbznqP2KBZcurw");
+    final dinoTest = solana.Ed25519HDPublicKey.fromBase58(
+        "2tGzpAbJVuB91dzJbUG7m45F88WqswcbznqP2KBZcurw");
 
     final programIdPublicKey = solana.Ed25519HDPublicKey.fromBase58(programId);
 
-        final gscorePda = await solana.Ed25519HDPublicKey.findProgramAddress(
+    final gscorePda = await solana.Ed25519HDPublicKey.findProgramAddress(
         programId: programIdPublicKey,
         seeds: [
           solana_buffer.Buffer.fromString("score"),
@@ -314,12 +322,12 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         ]);
     print(gscorePda.toBase58());
 
-
-      final instructions = [
+    final instructions = [
       await solana_anchor.AnchorInstruction.forMethod(
         programId: programIdPublicKey,
         method: 'savescore',
-        arguments: solana_encoder.ByteArray(anchor_types_parameters.ScoreArguments(
+        arguments:
+            solana_encoder.ByteArray(anchor_types_parameters.ScoreArguments(
           game: 1,
           score: BigInt.from(100),
         ).toBorsh().toList()),
@@ -330,7 +338,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
               pubKey: mainWalletSolana.publicKey, isSigner: true),
           solana_encoder.AccountMeta.writeable(
               pubKey: dinoTest, isSigner: false),
-                solana_encoder.AccountMeta.readonly(
+          solana_encoder.AccountMeta.readonly(
               pubKey: systemProgramId, isSigner: false),
         ],
         namespace: 'global',
@@ -343,5 +351,53 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
       commitment: solana.Commitment.confirmed,
     );
     print('Tx successful with hash: $signature');
+  }
+
+  getRanking() async {
+    //Get rank from blockchain
+    await dotenv.load(fileName: ".env");
+
+    SolanaClient? client;
+    client = SolanaClient(
+      rpcUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
+      websocketUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_WSS'].toString()),
+    );
+
+    const programId = '9V9ttZw7WTYW78Dx3hi2hV7V76PxAs5ZwbCkGi7qq8FW';
+
+    // Obtener todas las cuentas del programa
+    final accounts = await client.rpcClient.getProgramAccounts(
+      programId,
+      encoding: Encoding.jsonParsed,
+    );
+
+  // Recorre las cuentas y muestra los datos
+  for (var account in accounts) {
+    final datatest = BinaryAccountData(account.account.data as List<int>);
+    //AccountData accountData = AccountData.fromJson(account.account);
+    //print(accountData);
+    //final jsonData = json.decode(account.account.data);
+    // ignore: avoid_print
+    print(datatest);
+
+    //final data = account.account.data;
+
+    // Decodifica el dato como JSON
+    //final jsonData = json.decode(utf8.decode(data.toString() as List<int>));
+    /* final publicKey = account.account.owner.toBase58();
+    final data = account.account.data;
+
+    // Decodifica el dato como JSON
+    final jsonData = json.decode(utf8.decode(data));
+
+    print('publicKey: $publicKey');
+    print('account: $jsonData');
+    print('score: ${jsonData['score']}');
+    print('game: ${jsonData['game']}');
+    print('playerPubkey: ${jsonData['playerPubkey']}');
+    print('dinoPubkey: ${jsonData['dinoPubkey']}');
+    print('isInitialized: ${jsonData['isInitialized']}'); */
+  }
+    
   }
 }
