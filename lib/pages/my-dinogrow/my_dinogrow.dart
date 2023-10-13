@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'dart:typed_data';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
@@ -9,12 +9,15 @@ import 'package:solana/solana.dart';
 import 'package:solana_web3/solana_web3.dart';
 
 import '../../anchor_types/score_parameters.dart' as anchor_types_parameters;
+import '../../anchor_types/dino_score_info.dart' as anchor_types_dino;
+import '../../anchor_types/dino_game_info.dart' as anchor_types_dino_game;
 import '../../ui/widgets/widgets.dart';
 
 import 'dart:math';
 import 'package:solana/solana.dart' as solana;
 import 'package:solana/anchor.dart' as solana_anchor;
 import 'package:solana/encoder.dart' as solana_encoder;
+import 'package:solana_common/borsh/borsh.dart' as solana_borsh;
 import 'package:solana_common/utils/buffer.dart' as solana_buffer;
 import '../../anchor_types/nft_parameters.dart' as anchor_types;
 
@@ -308,7 +311,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
 
     //direccion mint del DINO
     final dinoTest = solana.Ed25519HDPublicKey.fromBase58(
-        "2tGzpAbJVuB91dzJbUG7m45F88WqswcbznqP2KBZcurw");
+        "GM3EGmMCYjZs7UstuJ1fvF1Pkocn9GV34BnTGabB8Maf");
 
     final programIdPublicKey = solana.Ed25519HDPublicKey.fromBase58(programId);
 
@@ -329,7 +332,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         arguments:
             solana_encoder.ByteArray(anchor_types_parameters.ScoreArguments(
           game: 1,
-          score: BigInt.from(100),
+          score: 1120,
         ).toBorsh().toList()),
         accounts: <solana_encoder.AccountMeta>[
           solana_encoder.AccountMeta.writeable(
@@ -371,33 +374,20 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
       encoding: Encoding.jsonParsed,
     );
 
-  // Recorre las cuentas y muestra los datos
-  for (var account in accounts) {
-    final datatest = BinaryAccountData(account.account.data as List<int>);
-    //AccountData accountData = AccountData.fromJson(account.account);
-    //print(accountData);
-    //final jsonData = json.decode(account.account.data);
-    // ignore: avoid_print
-    print(datatest);
+    // Recorre las cuentas y muestra los datos
+    for (var account in accounts) {
+      final bytes = account.account.data as BinaryAccountData;
 
-    //final data = account.account.data;
+      //Get Score
+      final decoderDataScore = anchor_types_dino.DinoScoreArguments.fromBorsh(
+          bytes.data as Uint8List);
+       print("score: ${decoderDataScore.gamescore}");
 
-    // Decodifica el dato como JSON
-    //final jsonData = json.decode(utf8.decode(data.toString() as List<int>));
-    /* final publicKey = account.account.owner.toBase58();
-    final data = account.account.data;
-
-    // Decodifica el dato como JSON
-    final jsonData = json.decode(utf8.decode(data));
-
-    print('publicKey: $publicKey');
-    print('account: $jsonData');
-    print('score: ${jsonData['score']}');
-    print('game: ${jsonData['game']}');
-    print('playerPubkey: ${jsonData['playerPubkey']}');
-    print('dinoPubkey: ${jsonData['dinoPubkey']}');
-    print('isInitialized: ${jsonData['isInitialized']}'); */
-  }
-    
+      //Get Game Data
+      final decoderDataGame = anchor_types_dino_game.DinoGameArguments.fromBorsh(
+          bytes.data as Uint8List);
+       print("score: ${decoderDataGame.playerPubkey}");
+       print("score: ${decoderDataGame.dinoPubkey}");
+    }
   }
 }
