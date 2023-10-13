@@ -14,8 +14,8 @@ dependencies:
   bip39: ^1.0.6
   flutter_secure_storage: ^8.0.0
   flutter_dotenv: ^5.1.0
-  flame: ^1.8.2
-  flame_forge2d: ^0.14.1+1
+  flame: 1.8.2
+  flame_forge2d: 0.14.1+1
   flutter_joystick: ^0.0.3
   url_launcher: ^6.1.14
   qr_flutter: ^4.1.0

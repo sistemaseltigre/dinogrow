@@ -115,6 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           child: TabBarView(
+            physics: const NeverScrollableScrollPhysics(),
             children: [
               const MiniGamesScreen(),
               RankingScreen(),

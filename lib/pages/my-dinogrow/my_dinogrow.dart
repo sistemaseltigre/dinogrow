@@ -247,7 +247,10 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
 
       if (mounted) {
         setState(() {
-          userNfts = arrayAssets.where((nft) => nft['imageUrl'] != '').toList();
+          userNfts = arrayAssets
+              .where((nft) =>
+                  nft['imageUrl'] != '' && nft['collectionName'] == 'DINOGROW')
+              .toList();
           showDinos = true;
         });
       }

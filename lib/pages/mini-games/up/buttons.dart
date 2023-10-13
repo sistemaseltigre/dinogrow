@@ -1,49 +1,52 @@
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
+import 'package:dinogrow/pages/mini-games/up/up.dart';
 
 class VirtualPadButtons extends PositionComponent {
   List<PositionComponent> buttons = [];
   List vpadbuttons() {
-    CircleComponent btnLeftCircle;
-    final circlePaintLeft = BasicPalette.gray.paint();
-    btnLeftCircle = CircleComponent(radius: 0.15, paint: circlePaintLeft);
-    btnLeftCircle.position = Vector2(0.3, 6.8);
+    RectangleComponent btnLeftCircle;
+    final circlePaintLeft = BasicPalette.yellow.paint();
+    btnLeftCircle =
+        RectangleComponent.square(size: 0.95, paint: circlePaintLeft);
+    btnLeftCircle.position = Vector2(0, worldSize.y - 5.7);
     btnLeftCircle.anchor = Anchor.topLeft;
     buttons.add(btnLeftCircle);
 
-    CircleComponent btnRightCircle;
-    final circlePaintRight = BasicPalette.gray.paint();
-    btnRightCircle = CircleComponent(radius: 0.15, paint: circlePaintRight);
-    btnRightCircle.position = Vector2(1, 6.8);
+    RectangleComponent btnRightCircle;
+    final circlePaintRight = BasicPalette.yellow.paint();
+    btnRightCircle =
+        RectangleComponent.square(size: 0.95, paint: circlePaintRight);
+    btnRightCircle.position = Vector2(3, worldSize.y - 5.7);
     btnRightCircle.anchor = Anchor.topLeft;
     buttons.add(btnRightCircle);
 
-    CircleComponent btnJumpCircle;
+    RectangleComponent btnJumpCircle;
     final circlePaintJump = BasicPalette.gray.paint();
-    btnJumpCircle = CircleComponent(radius: 0.15, paint: circlePaintJump);
-    btnJumpCircle.position = Vector2(2.7, 6.3);
+    btnJumpCircle =
+        RectangleComponent.square(size: 0.95, paint: circlePaintJump);
+    btnJumpCircle.position = Vector2(1, worldSize.y - 5.7);
     btnJumpCircle.anchor = Anchor.topLeft;
     buttons.add(btnJumpCircle);
 
-    CircleComponent btnAttackCircle;
-    final circlePaintAttack =
-        BasicPalette.gray.paint();
-    btnAttackCircle = CircleComponent(radius: 0.15, paint: circlePaintAttack);
-    btnAttackCircle.position = Vector2(3, 6.8);
+    RectangleComponent btnAttackCircle;
+    final circlePaintAttack = BasicPalette.gray.paint();
+    btnAttackCircle =
+        RectangleComponent.square(size: 0.95, paint: circlePaintAttack);
+    btnAttackCircle.position = Vector2(2, worldSize.y - 5.7);
     btnAttackCircle.anchor = Anchor.topLeft;
     buttons.add(btnAttackCircle);
 
     final btnStyleLetters = TextPaint(
-      style: const TextStyle(
-        fontSize: 20,
-        color: Colors.black,
-        fontFamily: 'ComicNeue Bold',
-      )
-    );
+        style: const TextStyle(
+      fontSize: 20,
+      color: Colors.black,
+      fontFamily: 'ComicNeue Bold',
+    ));
 
     final textJump = TextComponent(
-      text:'J',
+      text: 'J',
       textRenderer: btnStyleLetters,
       position: Vector2(2.7, 6.3),
     );
@@ -51,12 +54,12 @@ class VirtualPadButtons extends PositionComponent {
     buttons.add(textJump);
 
     final textAttack = TextComponent(
-      text:'A',
+      text: 'A',
       textRenderer: btnStyleLetters,
       position: Vector2(3, 6.8),
       priority: 1,
     );
-  
+
     buttons.add(textAttack);
 
     return buttons;

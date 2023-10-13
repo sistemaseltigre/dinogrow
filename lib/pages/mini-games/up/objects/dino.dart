@@ -10,9 +10,9 @@ enum DinoState {
 }
 
 class Dino extends BodyComponent with KeyboardHandler {
-  final _size = Vector2(1.80, 2.4);
+  final _size = Vector2(1.70, 2.4);
   // componentPosition is the position of the dino in the screen
-  final _componentPosition = Vector2(0, -.325);
+  final _componentPosition = Vector2(0, 0);
   DinoState state = DinoState.idle;
 
   late final SpriteAnimationComponent runComponent;
@@ -244,11 +244,11 @@ class Dino extends BodyComponent with KeyboardHandler {
     if (walking == true && walkStep != 0) {
       velocity.x = accelerationX * 3;
       body.linearVelocity = velocity;
-    }else{
+    } else {
       velocity.x = 0;
       body.linearVelocity = velocity;
     }
- 
+
     if (state == DinoState.jump) {
       _setComponent(jumpComponent, accelerationX);
     } else if (state == DinoState.dead) {
@@ -263,7 +263,6 @@ class Dino extends BodyComponent with KeyboardHandler {
   }
 
   void _setComponent(PositionComponent component, int xAcceleration) {
-    
     if (xAcceleration < 0) {
       if (!component.isFlippedHorizontally) {
         component.flipHorizontally();
@@ -285,14 +284,14 @@ class Dino extends BodyComponent with KeyboardHandler {
     final bodyDef = BodyDef(
       userData: this,
       //position: Vector2(worldSize.x / 2, worldSize.y - 3), change dino position later
-      position: Vector2(2, 0),
+      position: Vector2(2, 3),
       type: BodyType.dynamic,
     );
 
-    final shape = PolygonShape()..setAsBoxXY(_size.x / 2, .90);
+    final shape = PolygonShape()..setAsBoxXY(.4, .9);
 
     final fixtureDef = FixtureDef(shape)
-      ..density = 15
+      ..density = 0
       ..friction = 0
       ..restitution = 0;
     return world.createBody(bodyDef)..createFixture(fixtureDef);

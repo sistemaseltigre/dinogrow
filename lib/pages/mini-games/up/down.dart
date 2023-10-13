@@ -1,5 +1,6 @@
 import 'package:dinogrow/pages/mini-games/up/buttons.dart';
 import 'package:dinogrow/pages/mini-games/up/objects/dino.dart';
+import 'package:flame/palette.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
@@ -8,15 +9,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'objects/floor.dart';
 import 'objects/box.dart';
+import 'package:flame/timer.dart' as timer_flame;
 
 final screenSize = Vector2(720, 1280);
 
 // Scaled viewport size
 final worldSize = Vector2(7.2, 12.8);
 
-class UpGame extends Forge2DGame with TapDetector {
+class DownGame extends Forge2DGame with TapDetector {
   // setup the game camera to match the device size
-  UpGame() : super(zoom: 100, gravity: Vector2(0, 15));
+  DownGame() : super(zoom: 100, gravity: Vector2(0, 15));
 
   //get the dino object and sprite animation
   final dino = Dino();
@@ -26,6 +28,9 @@ class UpGame extends Forge2DGame with TapDetector {
   bool isLeftPressed = false;
   bool isRightPressed = false;
   bool isAttackPressed = false;
+
+  //Timer callbacks
+  timer_flame.Timer timer = timer_flame.Timer(0);
 
   //set initial score
   int score = 0;
@@ -40,7 +45,7 @@ class UpGame extends Forge2DGame with TapDetector {
   final btnAttackText = VirtualPadButtons().vpadbuttons()[5];
 
   // check and verify if the button is pressed
-  bool isInsideButton(Vector2 tapPosition, CircleComponent button) {
+  bool isInsideButton(Vector2 tapPosition, RectangleComponent button) {
     final buttonRect = button.toRect();
     return buttonRect.contains(tapPosition.toOffset());
   }
@@ -63,23 +68,29 @@ class UpGame extends Forge2DGame with TapDetector {
     }
 
     if (isLeftPressed) {
-      dino.walkLeft();
       btnLeft.paint.color = const Color.fromARGB(255, 91, 92, 91);
+      dino.walkLeft();
+
+      timer =
+          timer_flame.Timer(0.25, onTick: () => dino.walkLeft(), repeat: true);
     }
     if (isRightPressed) {
       dino.walkRight();
       btnRight.paint.color = const Color.fromARGB(255, 91, 92, 91);
+
+      timer =
+          timer_flame.Timer(0.25, onTick: () => dino.walkRight(), repeat: true);
     }
-    if (isJumpPressed) {
-      dino.jump();
-      score += 10;
-      scoreText.text = 'Score: ${score.toString().padLeft(3, '0')}';
-      btnJump.paint.color = const Color.fromARGB(255, 91, 92, 91);
-    }
-    if (isAttackPressed) {
-      dino.run();
-      btnAttack.paint.color = const Color.fromARGB(255, 91, 92, 91);
-    }
+    // if (isJumpPressed) {
+    //   dino.jump();
+    //   score += 10;
+    //   scoreText.text = 'Score: ${score.toString().padLeft(3, '0')}';
+    //   btnJump.paint.color = const Color.fromARGB(255, 91, 92, 91);
+    // }
+    // if (isAttackPressed) {
+    //   dino.run();
+    //   btnAttack.paint.color = const Color.fromARGB(255, 91, 92, 91);
+    // }
 
     return true;
   }
@@ -88,26 +99,29 @@ class UpGame extends Forge2DGame with TapDetector {
   bool onTapUp(TapUpInfo info) {
     if (isLeftPressed) {
       isLeftPressed = false;
-      btnLeft.paint.color = const Color.fromARGB(255, 182, 113, 113);
+      btnLeft.paint.color = BasicPalette.yellow.color;
     }
     if (isRightPressed) {
       isRightPressed = false;
-      btnRight.paint.color = const Color.fromARGB(255, 182, 113, 113);
+      btnRight.paint.color = BasicPalette.yellow.color;
     }
-    if (isJumpPressed) {
-      isJumpPressed = false;
-      btnJump.paint.color = const Color.fromARGB(255, 182, 113, 113);
-    }
-    if (isAttackPressed) {
-      isAttackPressed = false;
-      btnAttack.paint.color = const Color.fromARGB(255, 182, 113, 113);
-    }
+    // if (isJumpPressed) {
+    //   isJumpPressed = false;
+    //   btnJump.paint.color = BasicPalette.gray.color;
+    // }
+    // if (isAttackPressed) {
+    //   isAttackPressed = false;
+    //   btnAttack.paint.color = BasicPalette.gray.color;
+    // }
+    timer.stop();
 
     return true;
   }
 
   @override
   Future<void> onLoad() async {
+    await super.onLoad();
+
     final camera =
         CameraComponent.withFixedResolution(width: 720, height: 1280);
     final background = _Background(size: screenSize);
@@ -116,22 +130,32 @@ class UpGame extends Forge2DGame with TapDetector {
       camera.follow(dino.currentComponent, verticalOnly: true);
     }
     // camera.follow(dino.c,verticalOnly: true);
-    add(FpsTextComponent(
-        position: Vector2(0, 7.8),
-        scale: Vector2(0.01, 0.01),
-        anchor: Anchor.topLeft,
-        windowSize: 60,
-        textRenderer: TextPaint(style: const TextStyle(color: Colors.white))));
+
+    // add(FpsTextComponent(
+    //     position: Vector2(0, 7.8),
+    //     scale: Vector2(0.01, 0.01),
+    //     anchor: Anchor.topLeft,
+    //     windowSize: 60,
+    //     textRenderer: TextPaint(style: const TextStyle(color: Colors.white))));
 
     add(Floor());
+    add(LeftWall());
+    add(RightWall());
 
     //Testing
     // Add instance of Box
-    // final box = Box()
-    //   ..x = 0
-    //   ..y = 5.5;
-    // await box.loadImage();
-    // add(box);
+
+    finishGame() {
+      print('End game with $score points in score');
+    }
+
+    newBoxAndScore() {
+      score += 10;
+      scoreText.text = 'Score: ${score.toString().padLeft(3, '0')}';
+      add(Box(newBoxAndScore, finishGame));
+    }
+
+    add(Box(newBoxAndScore, finishGame));
 
     // add the player to the game
     add(dino);
@@ -139,8 +163,8 @@ class UpGame extends Forge2DGame with TapDetector {
     // add the buttons to the game
     add(btnLeft);
     add(btnRight);
-    add(btnJump);
-    add(btnAttack);
+    // add(btnJump);
+    // add(btnAttack);
     add(btnJumpText);
     add(btnAttackText);
 
@@ -163,7 +187,13 @@ class UpGame extends Forge2DGame with TapDetector {
   }
 
   @override
-  Color backgroundColor() => const Color(0xBF077777);
+  Color backgroundColor() => const Color(0x00077777);
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    timer.update(dt);
+  }
 }
 
 class _Background extends PositionComponent {
@@ -175,10 +205,10 @@ class _Background extends PositionComponent {
   }
 }
 
-class GameWidgetUp extends StatelessWidget {
-  final UpGame game;
+class GameWidgetDown extends StatelessWidget {
+  final DownGame game;
 
-  const GameWidgetUp({super.key, required this.game});
+  const GameWidgetDown({super.key, required this.game});
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +224,16 @@ class GameWidgetUp extends StatelessWidget {
           },
         ),
       ),
-      body: GameWidget(game: game),
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/up/maps/01/up_map_1.jpeg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: GameWidget(game: game),
+      ),
     );
   }
 }
