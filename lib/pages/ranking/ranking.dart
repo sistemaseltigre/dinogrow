@@ -141,7 +141,7 @@ class _RankingScreenState extends State<RankingScreen> {
         websocketUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_WSS'].toString()),
       );
 
-      const programId = '9V9ttZw7WTYW78Dx3hi2hV7V76PxAs5ZwbCkGi7qq8FW';
+      final programId = dotenv.env['PROGRAM_ID'].toString();
 
       // Obtener todas las cuentas del programa
       final accounts = await client.rpcClient.getProgramAccounts(

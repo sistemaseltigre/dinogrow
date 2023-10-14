@@ -168,7 +168,7 @@ class DownGame extends Forge2DGame with TapDetector {
     }
 
     newBoxAndScore() {
-      score += 10;
+      score += 1;
       scoreText.text = 'Score: ${score.toString().padLeft(3, '0')}';
       add(Box(newBoxAndScore, finishGame));
     }
@@ -413,7 +413,7 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
         mainWalletKey!,
       );
 
-      const programId = '9V9ttZw7WTYW78Dx3hi2hV7V76PxAs5ZwbCkGi7qq8FW';
+      final programId = dotenv.env['PROGRAM_ID'].toString();
       final systemProgramId =
           solana.Ed25519HDPublicKey.fromBase58(solana.SystemProgram.programId);
 

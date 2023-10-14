@@ -1,6 +1,6 @@
 name: dinogrow
 description: 2D blockchain game about growing dinosaurs.
-version: 1.0.0+1
+version: 1.0.0+3
 
 environment:
   sdk: ">=3.0.2 <4.0.0"

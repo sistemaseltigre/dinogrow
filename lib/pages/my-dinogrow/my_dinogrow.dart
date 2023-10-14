@@ -367,7 +367,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         mainWalletKey!,
       );
 
-      const programId = '9V9ttZw7WTYW78Dx3hi2hV7V76PxAs5ZwbCkGi7qq8FW';
+      final programId = dotenv.env['PROGRAM_ID'].toString();
 
       final programIdPublicKey =
           solana.Ed25519HDPublicKey.fromBase58(programId);
