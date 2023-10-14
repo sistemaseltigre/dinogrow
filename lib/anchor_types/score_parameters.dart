@@ -7,7 +7,7 @@ class ScoreArguments with _$ScoreArguments {
   factory ScoreArguments(
       {
       @BU32() required int game,
-      @BU64() required BigInt score,
+      @BU32() required int score,
       }) = _ScoreArguments;
 
   const ScoreArguments._();
