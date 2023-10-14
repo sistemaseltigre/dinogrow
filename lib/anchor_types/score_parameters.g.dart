@@ -8,13 +8,13 @@ part of 'score_parameters.dart';
 
 mixin _$ScoreArguments {
   int get game => throw UnimplementedError();
-  BigInt get score => throw UnimplementedError();
+  int get score => throw UnimplementedError();
 
   Uint8List toBorsh() {
     final writer = BinaryWriter();
 
     const BU32().write(writer, game);
-    const BU64().write(writer, score);
+    const BU32().write(writer, score);
 
     return writer.toArray();
   }
@@ -27,7 +27,7 @@ class _ScoreArguments extends ScoreArguments {
   }) : super._();
 
   final int game;
-  final BigInt score;
+  final int score;
 }
 
 class BScoreArguments implements BType<ScoreArguments> {
@@ -42,7 +42,7 @@ class BScoreArguments implements BType<ScoreArguments> {
   ScoreArguments read(BinaryReader reader) {
     return ScoreArguments(
       game: const BU32().read(reader),
-      score: const BU64().read(reader),
+      score: const BU32().read(reader),
     );
   }
 }
