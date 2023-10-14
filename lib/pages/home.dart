@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _balance;
   SolanaClient? client;
   final storage = const FlutterSecureStorage();
+
   @override
   void initState() {
     super.initState();
@@ -66,7 +67,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       const SizedBox(width: 3),
-                      Text(_balance ?? 'Loading...',
+                      Text(
+                          _balance != null
+                              ? double.parse(_balance ?? '0').toStringAsFixed(2)
+                              : 'Loading...',
                           style: const TextStyle(color: Colors.black)),
                       const SizedBox(width: 3),
                       const Text('SOL',
@@ -112,11 +116,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           child: TabBarView(
+            physics: const NeverScrollableScrollPhysics(),
             children: [
               const MiniGamesScreen(),
               RankingScreen(),
-              const MydinogrowScreen(),
-              WalletScreen(address: _publicKey, balance: _balance),
+              MydinogrowScreen(
+                  address: _publicKey ?? '', getBalance: () => _getBalance()),
+              WalletScreen(
+                  address: _publicKey ?? '',
+                  balance: _balance,
+                  getBalance: () => _getBalance()),
             ],
           ),
         ),

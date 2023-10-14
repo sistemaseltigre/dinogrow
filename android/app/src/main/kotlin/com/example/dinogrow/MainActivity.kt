@@ -1,4 +1,4 @@
-package com.example.dinogrow
+package crypto.game.dinogrow
 
 import io.flutter.embedding.android.FlutterActivity
 

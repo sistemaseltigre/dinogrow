@@ -7,7 +7,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'objects/floor.dart';
-import 'objects/box.dart';
+// import 'objects/box.dart';
 
 final screenSize = Vector2(720, 1280);
 
@@ -127,11 +127,11 @@ class UpGame extends Forge2DGame with TapDetector {
 
     //Testing
     // Add instance of Box
-    final box = Box()
-      ..x = 0
-      ..y = 5.5;
-    await box.loadImage();
-    add(box);
+    // final box = Box()
+    //   ..x = 0
+    //   ..y = 5.5;
+    // await box.loadImage();
+    // add(box);
 
     // add the player to the game
     add(dino);
