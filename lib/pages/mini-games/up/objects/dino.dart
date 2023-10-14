@@ -10,7 +10,7 @@ enum DinoState {
 }
 
 class Dino extends BodyComponent with KeyboardHandler {
-  final _size = Vector2(1.70, 2.4);
+  final _size = Vector2(1.2, 2.4);
   // componentPosition is the position of the dino in the screen
   final _componentPosition = Vector2(0, 0);
   DinoState state = DinoState.idle;

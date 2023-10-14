@@ -103,7 +103,7 @@ class _RankingScreenState extends State<RankingScreen> {
                                                   ),
                                           ),
                                     title: Text(
-                                        '${item.dinoPubkey.substring(0, 5)}...${item.dinoPubkey.substring(item.dinoPubkey.length - 5, item.dinoPubkey.length)}',
+                                        '${item.playerPubkey.substring(0, 5)}...${item.playerPubkey.substring(item.playerPubkey.length - 5, item.playerPubkey.length)}',
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.black)),
