@@ -118,6 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<dynamic> onDifferentAccountPressed(BuildContext context) async {
     return showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (context) {
           return AlertDialog(

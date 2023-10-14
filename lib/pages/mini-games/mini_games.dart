@@ -18,25 +18,35 @@ class _MiniGamesPageState extends State<MiniGamesScreen> {
       body: Container(
         height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(color: Colors.transparent),
-        child: const Center(
+        child: Center(
           child: Padding(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               child: Wrap(
                 spacing: 12,
                 runSpacing: 12,
                 alignment: WrapAlignment.center,
                 children: [
                   GameCardWidget(
-                    text: 'UP',
-                    route: "/mini_games/comming_soon",
-                  ),
-                  GameCardWidget(
                     text: 'DOWN',
                     route: "/mini_games/down",
+                    localImage: Image.asset(
+                      'assets/images/up/thumb.png',
+                      width: 120,
+                    ),
                   ),
-                  GameCardWidget(
-                    text: 'COMING SOON',
-                    route: "/mini_games/comming_soon",
+                  const Opacity(
+                    opacity: 0.6,
+                    child: GameCardWidget(
+                      text: 'UP',
+                      route: "/mini_games/comming_soon",
+                    ),
+                  ),
+                  const Opacity(
+                    opacity: 0.6,
+                    child: GameCardWidget(
+                      text: 'COMING SOON',
+                      route: "/mini_games/comming_soon",
+                    ),
                   ),
                 ],
               )),

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:solana/solana.dart';
 import 'package:solana/dto.dart';
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 // import 'package:solana_common/borsh/borsh.dart' as solana_borsh;
 import '../../anchor_types/dino_score_info.dart' as anchor_types_dino;
@@ -18,6 +21,7 @@ class RankingScreen extends StatefulWidget {
 }
 
 class _RankingScreenState extends State<RankingScreen> {
+  final storage = const FlutterSecureStorage();
   List<ItemsProps> items = [];
   bool loading = true;
 
@@ -83,10 +87,23 @@ class _RankingScreenState extends State<RankingScreen> {
                                         ? Icon(
                                             Icons.emoji_events,
                                             color: prizeColors[index],
+                                            size: 36,
                                           )
-                                        : null,
+                                        : ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(42),
+                                            child: item.imageUrl.isNotEmpty
+                                                ? Image.network(
+                                                    item.imageUrl,
+                                                    width: 42,
+                                                  )
+                                                : Image.asset(
+                                                    'assets/images/logo.jpeg',
+                                                    width: 42,
+                                                  ),
+                                          ),
                                     title: Text(
-                                        '${item.playerPubkey.substring(0, 5)}...${item.playerPubkey.substring(item.playerPubkey.length - 5, item.playerPubkey.length)}',
+                                        '${item.dinoPubkey.substring(0, 5)}...${item.dinoPubkey.substring(item.dinoPubkey.length - 5, item.dinoPubkey.length)}',
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.black)),
@@ -133,7 +150,8 @@ class _RankingScreenState extends State<RankingScreen> {
       );
 
       // Recorre las cuentas y muestra los datos
-      for (var account in accounts) {
+      for (var account
+          in (accounts.length <= 15 ? accounts : accounts.sublist(0, 15))) {
         final bytes = account.account.data as BinaryAccountData;
 
         //Get Score
@@ -145,14 +163,57 @@ class _RankingScreenState extends State<RankingScreen> {
             anchor_types_dino_game.DinoGameArguments.fromBorsh(
                 bytes.data as Uint8List);
 
-        items2save.add(ItemsProps(
-            dinoPubkey: '${decoderDataGame.dinoPubkey}',
-            gamescore: '${decoderDataScore.gamescore}',
-            playerPubkey: '${decoderDataGame.playerPubkey}'));
+        String? localImgUrl =
+            await storage.read(key: '${decoderDataGame.dinoPubkey}');
 
-        // print("score: ${decoderDataScore.gamescore}");
-        // print("score: ${decoderDataGame.playerPubkey}");
-        // print("score: ${decoderDataGame.dinoPubkey}");
+        if (localImgUrl == null) {
+          final response = await http.post(
+              Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
+              headers: <String, String>{
+                'Content-Type': 'application/json',
+                "x-qn-api-version": '1'
+              },
+              body: jsonEncode({
+                "method": "qn_fetchNFTs",
+                "params": {
+                  "wallet": '${decoderDataGame.playerPubkey}',
+                  "page": 1,
+                  "perPage": 10
+                }
+              }));
+
+          final dataResponse = jsonDecode(response.body);
+
+          if (dataResponse.isNotEmpty) {
+            final arrayAssets = dataResponse['result']['assets'];
+            final indexNft = arrayAssets.indexWhere((item) =>
+                item["tokenAddress"] == '${decoderDataGame.dinoPubkey}');
+            String imgurl = indexNft > -1
+                ? arrayAssets[int.parse('$indexNft')]['imageUrl']
+                : '';
+
+            await storage.write(
+                key: '${decoderDataGame.dinoPubkey}', value: imgurl);
+
+            items2save.add(ItemsProps(
+                imageUrl: imgurl,
+                dinoPubkey: '${decoderDataGame.dinoPubkey}',
+                gamescore: '${decoderDataScore.gamescore}',
+                playerPubkey: '${decoderDataGame.playerPubkey}'));
+          } else {
+            items2save.add(ItemsProps(
+                imageUrl: '',
+                dinoPubkey: '${decoderDataGame.dinoPubkey}',
+                gamescore: '${decoderDataScore.gamescore}',
+                playerPubkey: '${decoderDataGame.playerPubkey}'));
+          }
+        } else {
+          items2save.add(ItemsProps(
+              imageUrl: localImgUrl,
+              dinoPubkey: '${decoderDataGame.dinoPubkey}',
+              gamescore: '${decoderDataScore.gamescore}',
+              playerPubkey: '${decoderDataGame.playerPubkey}'));
+        }
       }
 
       setState(() {
@@ -182,6 +243,7 @@ List prizeColors = List.generate(
         index == 0 ? Colors.orange : (index == 1 ? Colors.grey : Colors.brown));
 
 class ItemsProps {
+  String imageUrl;
   String playerPubkey;
   String gamescore;
   String dinoPubkey;
@@ -189,6 +251,7 @@ class ItemsProps {
   ItemsProps(
       {required this.playerPubkey,
       required this.gamescore,
+      required this.imageUrl,
       required this.dinoPubkey});
 }
 

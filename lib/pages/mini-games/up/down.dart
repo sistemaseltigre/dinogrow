@@ -82,7 +82,7 @@ class DownGame extends Forge2DGame with TapDetector {
     if (isLeftPressed) {
       btnLeft.paint.color = const Color.fromARGB(255, 91, 92, 91);
       isRightPressed = false;
-      btnRight.paint.color = BasicPalette.yellow.color;
+      btnRight.paint.color = BasicPalette.transparent.color;
 
       dino.walkLeft();
 
@@ -92,7 +92,7 @@ class DownGame extends Forge2DGame with TapDetector {
     if (isRightPressed) {
       btnRight.paint.color = const Color.fromARGB(255, 91, 92, 91);
       isLeftPressed = false;
-      btnLeft.paint.color = BasicPalette.yellow.color;
+      btnLeft.paint.color = BasicPalette.transparent.color;
 
       dino.walkRight();
 
@@ -117,11 +117,11 @@ class DownGame extends Forge2DGame with TapDetector {
   bool onTapUp(TapUpInfo info) {
     if (isLeftPressed) {
       isLeftPressed = false;
-      btnLeft.paint.color = BasicPalette.yellow.color;
+      btnLeft.paint.color = BasicPalette.transparent.color;
     }
     if (isRightPressed) {
       isRightPressed = false;
-      btnRight.paint.color = BasicPalette.yellow.color;
+      btnRight.paint.color = BasicPalette.transparent.color;
     }
     // if (isJumpPressed) {
     //   isJumpPressed = false;
@@ -168,12 +168,37 @@ class DownGame extends Forge2DGame with TapDetector {
     }
 
     newBoxAndScore() {
-      score += 1;
+      score += 10;
       scoreText.text = 'Score: ${score.toString().padLeft(3, '0')}';
       add(Box(newBoxAndScore, finishGame));
     }
 
     add(Box(newBoxAndScore, finishGame));
+
+    // Render floor
+    final boxFloor1 = BoxFloor()
+      ..x = 1
+      ..y = worldSize.y - 5.7;
+    await boxFloor1.loadImage();
+    add(boxFloor1);
+
+    final boxFloor2 = BoxFloor()
+      ..x = 2
+      ..y = worldSize.y - 5.7;
+    await boxFloor2.loadImage();
+    add(boxFloor2);
+
+    final leftFloor = LeftFloor()
+      ..x = 0
+      ..y = worldSize.y - 5.7;
+    await leftFloor.loadImage();
+    add(leftFloor);
+
+    final rightFloor = RightFloor()
+      ..x = 3
+      ..y = worldSize.y - 5.7;
+    await rightFloor.loadImage();
+    add(rightFloor);
 
     // add the player to the game
     add(dino);
@@ -283,6 +308,7 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
       loading = true;
     });
     showDialog<String>(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => AlertDialog(
         title: const Text('Welcome to Down'),
@@ -301,6 +327,7 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
               Navigator.pop(context);
               setState(() {
                 loading = false;
+                game = DownGame(showEndMessage);
               });
             },
             child: const Text("Let's go!"),
@@ -312,6 +339,7 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
 
   showEndMessage(String score) {
     showDialog<String>(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => AlertDialog(
         title: const Text('Ups ... game ended :('),
@@ -339,15 +367,16 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
 
   showrResultMessage(String transaction) {
     showDialog<String>(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => AlertDialog(
         title: const Text('Score saved'),
         content: Text(
-            "Perfect! You score is now in Ranking, good luck! \n\nIf you want you can review information on blockchain with this transaction reference: \n\n $transaction"),
+            "Perfect! You score is now in Ranking, good luck! \n\nIf you want, you can review information on blockchain with this transaction reference: \n\n$transaction"),
         actions: <Widget>[
           TextButton(
             onPressed: () {
-              _launchUrl();
+              _launchUrl(transaction);
             },
             child: const Text('View transaction'),
           ),
@@ -459,8 +488,12 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
   }
 }
 
-Future<void> _launchUrl() async {
-  Uri url = Uri(scheme: 'https', host: 'x.com', path: '/din0gr0w');
+Future<void> _launchUrl(String transaction) async {
+  Uri url = Uri(
+      scheme: 'https',
+      host: 'explorer.solana.com',
+      path: '/tx/$transaction',
+      queryParameters: {'cluster': 'devnet'});
   if (!await launchUrl(url)) {
     throw Exception('Could not launch $url');
   }

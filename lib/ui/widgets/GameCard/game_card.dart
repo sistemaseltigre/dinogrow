@@ -5,12 +5,14 @@ class GameCardWidget extends StatelessWidget {
   final String text;
   final String? route;
   final String? urlImage;
+  final Image? localImage;
 
   const GameCardWidget({
     super.key,
     required this.text,
     this.route,
     this.urlImage,
+    this.localImage,
   });
 
   @override
@@ -50,10 +52,11 @@ class GameCardWidget extends StatelessWidget {
                         );
                       },
                     )
-                  : Image.asset(
-                      'assets/images/logo.jpeg',
-                      width: 120,
-                    ),
+                  : localImage ??
+                      Image.asset(
+                        'assets/images/logo.jpeg',
+                        width: 120,
+                      ),
             ),
             const SizedBox(height: 16),
             Text(

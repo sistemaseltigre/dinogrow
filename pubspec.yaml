@@ -35,6 +35,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/up/
     - assets/images/up/green/run/
     - assets/images/up/green/walk/
     - assets/images/up/green/dead/

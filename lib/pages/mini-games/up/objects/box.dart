@@ -42,9 +42,9 @@ class Box extends BodyComponent with ContactCallbacks {
     final bodyDef = BodyDef(
       userData: this,
       //position: Vector2(worldSize.x / 2, worldSize.y - 3), change dino position later
-      position: Vector2(rnd.nextDouble() * 2.5, -1),
+      position: Vector2(rnd.nextDouble() * 2.8 + 0.2, -1),
       type: BodyType.dynamic,
-      gravityOverride: Vector2(0, rnd.nextDouble() * 3 + 1),
+      gravityOverride: Vector2(0, rnd.nextDouble() * 3 + 2),
     );
 
     final shape = PolygonShape()..setAsBoxXY(.5, .5);
@@ -54,5 +54,36 @@ class Box extends BodyComponent with ContactCallbacks {
       ..friction = 0
       ..restitution = 0;
     return world.createBody(bodyDef)..createFixture(fixtureDef);
+  }
+}
+
+class BoxFloor extends SpriteComponent {
+  BoxFloor() : super(priority: 1);
+
+  Future<void> loadImage() async {
+    // load the image to be used as the box
+    sprite = await Sprite.load('up/maps/01/box.png');
+    width = 1;
+    height = 1;
+  }
+}
+
+class LeftFloor extends SpriteComponent {
+  LeftFloor() : super(priority: 1);
+
+  Future<void> loadImage() async {
+    sprite = await Sprite.load('up/maps/01/left_btn.png');
+    width = 1;
+    height = 1;
+  }
+}
+
+class RightFloor extends SpriteComponent {
+  RightFloor() : super(priority: 1);
+
+  Future<void> loadImage() async {
+    sprite = await Sprite.load('up/maps/01/right_btn.png');
+    width = 1;
+    height = 1;
   }
 }

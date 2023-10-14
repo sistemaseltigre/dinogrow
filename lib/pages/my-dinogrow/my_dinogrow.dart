@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:solana/solana.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../ui/widgets/widgets.dart';
 
@@ -253,8 +254,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
 
       if (filteredData.length == 1 ||
           (filteredData.length > 0 &&
-              dinoSelected != null &&
-              dinoSelected.isEmpty)) {
+              (dinoSelected == null || dinoSelected.isEmpty))) {
         await storage.write(
             key: 'dinoSelected', value: filteredData[0]['tokenAddress']);
         setState(() {
@@ -290,6 +290,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
 
   beforeOtherNft() {
     showDialog<String>(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => AlertDialog(
         title: const Text('Claim other Dino'),
@@ -306,6 +307,32 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
               Navigator.pop(context, 'OK');
             },
             child: const Text('Confimr'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  showrResultMessage(String transaction) {
+    showDialog<String>(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('New Dino claimed'),
+        content: Text(
+            "Congrats, you already have new Dino NFT! \n\nIf you want, you can review information on blockchain with this transaction reference: \n\n$transaction"),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Back"),
+          ),
+          TextButton(
+            onPressed: () {
+              _launchUrl(transaction);
+            },
+            child: const Text('View transaction'),
           ),
         ],
       ),
@@ -456,6 +483,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         commitment: solana.Commitment.confirmed,
       );
       print('Tx successful with hash: $signature');
+      showrResultMessage(signature);
       fetchNfts();
     } catch (e) {
       final snackBar = SnackBar(
@@ -471,5 +499,16 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         });
       }
     }
+  }
+}
+
+Future<void> _launchUrl(String transaction) async {
+  Uri url = Uri(
+      scheme: 'https',
+      host: 'explorer.solana.com',
+      path: '/tx/$transaction',
+      queryParameters: {'cluster': 'devnet'});
+  if (!await launchUrl(url)) {
+    throw Exception('Could not launch $url');
   }
 }
