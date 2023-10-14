@@ -6,8 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:solana/solana.dart';
 
-import '../../anchor_types/score_parameters.dart' as anchor_types_parameters;
-
 import '../../ui/widgets/widgets.dart';
 
 import 'dart:math';
@@ -49,20 +47,12 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
           text: 'Claim your Dino',
           onPressed: createNft,
         ),
-        // IntroButtonWidget(
-        //   text: 'Save Score',
-        //   onPressed: saveScore,
-        // ),
-        // IntroButtonWidget(
-        //   text: 'Get Ranking',
-        //   onPressed: getRanking,
-        // ),
         const SizedBox(height: 30),
         Container(
           color: Colors.orange[700],
           padding: const EdgeInsets.all(8),
           child: const Text(
-            'Wait ... you must to have a Dino to start play our games, so "Claim your Dino" is our last step to auto-generate your first NFT!',
+            'Wait ... you must to have a Dino to start play our games, so "Claim your Dino" is our last step to auto-generate your first NFT! Remember you must have at least 0.5 SOL in you wallet balance',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             textAlign: TextAlign.center,
           ),
@@ -78,11 +68,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
             itemCount: userNfts.length,
             itemBuilder: (context, index) {
               return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    nftSelected = index;
-                  });
-                },
+                onTap: () => selectNewDino(index),
                 child: Container(
                   margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
@@ -225,6 +211,15 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
     );
   }
 
+  selectNewDino(int index) async {
+    setState(() {
+      nftSelected = index;
+    });
+
+    await storage.write(
+        key: 'dinoSelected', value: userNfts[index]['tokenAddress']);
+  }
+
   Future<void> fetchNfts() async {
     try {
       print('widget.address: ${widget.address}');
@@ -233,6 +228,8 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         userNfts = [];
         showDinos = false;
       });
+
+      String? dinoSelected = await storage.read(key: 'dinoSelected');
 
       await dotenv.load(fileName: ".env");
 
@@ -249,13 +246,31 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
 
       final dataResponse = jsonDecode(response.body);
       final arrayAssets = dataResponse['result']['assets'];
+      final filteredData = arrayAssets
+          .where((nft) =>
+              nft['imageUrl'] != '' && nft['collectionName'] == 'DINOGROW')
+          .toList();
+
+      if (filteredData.length == 1 ||
+          (filteredData.length > 0 &&
+              dinoSelected != null &&
+              dinoSelected.isEmpty)) {
+        await storage.write(
+            key: 'dinoSelected', value: filteredData[0]['tokenAddress']);
+        setState(() {
+          nftSelected = 0;
+        });
+      } else if (dinoSelected != null && dinoSelected.isNotEmpty) {
+        int index = filteredData
+            .indexWhere((item) => item["tokenAddress"] == dinoSelected);
+        setState(() {
+          nftSelected = index;
+        });
+      }
 
       if (mounted) {
         setState(() {
-          userNfts = arrayAssets
-              .where((nft) =>
-                  nft['imageUrl'] != '' && nft['collectionName'] == 'DINOGROW')
-              .toList();
+          userNfts = filteredData;
           showDinos = true;
         });
       }
@@ -332,7 +347,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
 
       int idrnd = Random().nextInt(999);
       String id = "Dino$idrnd";
-      print(id);
+      // print(id);
 
       final nftMintPda = await solana.Ed25519HDPublicKey.findProgramAddress(
           programId: programIdPublicKey,
@@ -340,7 +355,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
             solana_buffer.Buffer.fromString("mint"),
             solana_buffer.Buffer.fromString(id),
           ]);
-      print(nftMintPda.toBase58());
+      // print(nftMintPda.toBase58());
 
       final ataProgramId = solana.Ed25519HDPublicKey.fromBase58(
           solana.AssociatedTokenAccountProgram.programId);
@@ -365,7 +380,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         ],
         programId: ataProgramId,
       );
-      print(aTokenAccount.toBase58());
+      // print(aTokenAccount.toBase58());
 
       final masterEditionAccountPda =
           await solana.Ed25519HDPublicKey.findProgramAddress(
@@ -456,72 +471,5 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         });
       }
     }
-  }
-
-  saveScore() async {
-    await dotenv.load(fileName: ".env");
-
-    SolanaClient? client;
-    client = SolanaClient(
-      rpcUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
-      websocketUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_WSS'].toString()),
-    );
-    const storage = FlutterSecureStorage();
-
-    final mainWalletKey = await storage.read(key: 'mnemonic');
-
-    final mainWalletSolana = await solana.Ed25519HDKeyPair.fromMnemonic(
-      mainWalletKey!,
-    );
-
-    const programId = '9V9ttZw7WTYW78Dx3hi2hV7V76PxAs5ZwbCkGi7qq8FW';
-    final systemProgramId =
-        solana.Ed25519HDPublicKey.fromBase58(solana.SystemProgram.programId);
-
-    //direccion mint del DINO
-    final dinoTest = solana.Ed25519HDPublicKey.fromBase58(
-        "GM3EGmMCYjZs7UstuJ1fvF1Pkocn9GV34BnTGabB8Maf");
-
-    final programIdPublicKey = solana.Ed25519HDPublicKey.fromBase58(programId);
-
-    final gscorePda = await solana.Ed25519HDPublicKey.findProgramAddress(
-        programId: programIdPublicKey,
-        seeds: [
-          solana_buffer.Buffer.fromString("score"),
-          mainWalletSolana.publicKey.bytes,
-          dinoTest.bytes,
-          solana_buffer.Buffer.fromInt32(1),
-        ]);
-    print(gscorePda.toBase58());
-
-    final instructions = [
-      await solana_anchor.AnchorInstruction.forMethod(
-        programId: programIdPublicKey,
-        method: 'savescore',
-        arguments:
-            solana_encoder.ByteArray(anchor_types_parameters.ScoreArguments(
-          game: 1,
-          score: 1120,
-        ).toBorsh().toList()),
-        accounts: <solana_encoder.AccountMeta>[
-          solana_encoder.AccountMeta.writeable(
-              pubKey: gscorePda, isSigner: false),
-          solana_encoder.AccountMeta.writeable(
-              pubKey: mainWalletSolana.publicKey, isSigner: true),
-          solana_encoder.AccountMeta.writeable(
-              pubKey: dinoTest, isSigner: false),
-          solana_encoder.AccountMeta.readonly(
-              pubKey: systemProgramId, isSigner: false),
-        ],
-        namespace: 'global',
-      ),
-    ];
-    final message = solana.Message(instructions: instructions);
-    final signature = await client.sendAndConfirmTransaction(
-      message: message,
-      signers: [mainWalletSolana],
-      commitment: solana.Commitment.confirmed,
-    );
-    print('Tx successful with hash: $signature');
   }
 }

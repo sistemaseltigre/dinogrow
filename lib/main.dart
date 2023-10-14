@@ -64,7 +64,7 @@ final GoRouter _router = GoRouter(routes: <GoRoute>[
   GoRoute(
       path: '/mini_games/down',
       builder: (context, state) {
-        return GameWidgetDown(game: DownGame());
+        return const GameWidgetDown();
       }),
   GoRoute(
       path: '/mini_games/comming_soon',

@@ -10,6 +10,17 @@ import 'package:go_router/go_router.dart';
 import 'objects/floor.dart';
 import 'objects/box.dart';
 import 'package:flame/timer.dart' as timer_flame;
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../anchor_types/score_parameters.dart' as anchor_types_parameters;
+
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:solana/solana.dart';
+import 'package:solana/solana.dart' as solana;
+import 'package:solana/anchor.dart' as solana_anchor;
+import 'package:solana/encoder.dart' as solana_encoder;
+import 'package:solana_common/utils/buffer.dart' as solana_buffer;
 
 final screenSize = Vector2(720, 1280);
 
@@ -17,8 +28,9 @@ final screenSize = Vector2(720, 1280);
 final worldSize = Vector2(7.2, 12.8);
 
 class DownGame extends Forge2DGame with TapDetector {
+  final void Function(String) endGameCallback;
   // setup the game camera to match the device size
-  DownGame() : super(zoom: 100, gravity: Vector2(0, 15));
+  DownGame(this.endGameCallback) : super(zoom: 100, gravity: Vector2(0, 15));
 
   //get the dino object and sprite animation
   final dino = Dino();
@@ -69,14 +81,20 @@ class DownGame extends Forge2DGame with TapDetector {
 
     if (isLeftPressed) {
       btnLeft.paint.color = const Color.fromARGB(255, 91, 92, 91);
+      isRightPressed = false;
+      btnRight.paint.color = BasicPalette.yellow.color;
+
       dino.walkLeft();
 
       timer =
           timer_flame.Timer(0.25, onTick: () => dino.walkLeft(), repeat: true);
     }
     if (isRightPressed) {
-      dino.walkRight();
       btnRight.paint.color = const Color.fromARGB(255, 91, 92, 91);
+      isLeftPressed = false;
+      btnLeft.paint.color = BasicPalette.yellow.color;
+
+      dino.walkRight();
 
       timer =
           timer_flame.Timer(0.25, onTick: () => dino.walkRight(), repeat: true);
@@ -146,11 +164,11 @@ class DownGame extends Forge2DGame with TapDetector {
     // Add instance of Box
 
     finishGame() {
-      print('End game with $score points in score');
+      endGameCallback('$score');
     }
 
     newBoxAndScore() {
-      score += 10;
+      score += 1;
       scoreText.text = 'Score: ${score.toString().padLeft(3, '0')}';
       add(Box(newBoxAndScore, finishGame));
     }
@@ -205,10 +223,27 @@ class _Background extends PositionComponent {
   }
 }
 
-class GameWidgetDown extends StatelessWidget {
-  final DownGame game;
+class GameWidgetDown extends StatefulWidget {
+  const GameWidgetDown({super.key});
 
-  const GameWidgetDown({super.key, required this.game});
+  @override
+  State<GameWidgetDown> createState() => _GameWidgetDownState();
+}
+
+class _GameWidgetDownState extends State<GameWidgetDown> {
+  DownGame game = DownGame((String data) {});
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    setState(() {
+      game = DownGame(showEndMessage);
+    });
+
+    Future.delayed(const Duration(milliseconds: 500), showWelcome);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -232,8 +267,201 @@ class GameWidgetDown extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        child: GameWidget(game: game),
+        child: loading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.black,
+                ),
+              )
+            : GameWidget(game: game),
       ),
     );
+  }
+
+  showWelcome() {
+    setState(() {
+      loading = true;
+    });
+    showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Welcome to Down'),
+        content: const Text(
+            "The aim of this minigame is avoid all boxes that come from up, while you avoid more boxes you will have great score, good luck and ... \n\n¡Watch out with the boxes! \n\nREMEMBER: you could save your score on the blockchain but you'll need at least 0.5 SOL in your wallet balance"),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text('Go back'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                loading = false;
+              });
+            },
+            child: const Text("Let's go!"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  showEndMessage(String score) {
+    showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Ups ... game ended :('),
+        content: Text(
+            "Thanks for play! Congrats you score was: $score \n\nDo you want to save and share it in Ranking? Remember this has a cost so you must have at least 0.5 SOL in your wallet balance."),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              showWelcome();
+            },
+            child: const Text('Try again'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              saveScore(int.parse(score));
+            },
+            child: const Text("Send my score"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  showrResultMessage(String transaction) {
+    showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Score saved'),
+        content: Text(
+            "Perfect! You score is now in Ranking, good luck! \n\nIf you want you can review information on blockchain with this transaction reference: \n\n $transaction"),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              _launchUrl();
+            },
+            child: const Text('View transaction'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text("Go to minigames"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  saveScore(int score) async {
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      await dotenv.load(fileName: ".env");
+
+      SolanaClient? client;
+      client = SolanaClient(
+        rpcUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
+        websocketUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_WSS'].toString()),
+      );
+      const storage = FlutterSecureStorage();
+
+      final mainWalletKey = await storage.read(key: 'mnemonic');
+
+      final mainWalletSolana = await solana.Ed25519HDKeyPair.fromMnemonic(
+        mainWalletKey!,
+      );
+
+      const programId = '9V9ttZw7WTYW78Dx3hi2hV7V76PxAs5ZwbCkGi7qq8FW';
+      final systemProgramId =
+          solana.Ed25519HDPublicKey.fromBase58(solana.SystemProgram.programId);
+
+      //direccion mint del DINO
+      String? dinoSelected = await storage.read(key: 'dinoSelected');
+
+      if (dinoSelected == null) {
+        throw "You don't have dino selected";
+      }
+
+      final dinoTest = solana.Ed25519HDPublicKey.fromBase58(dinoSelected);
+
+      final programIdPublicKey =
+          solana.Ed25519HDPublicKey.fromBase58(programId);
+
+      final gscorePda = await solana.Ed25519HDPublicKey.findProgramAddress(
+          programId: programIdPublicKey,
+          seeds: [
+            solana_buffer.Buffer.fromString("score"),
+            mainWalletSolana.publicKey.bytes,
+            dinoTest.bytes,
+            solana_buffer.Buffer.fromInt32(1),
+          ]);
+      // print(gscorePda.toBase58());
+
+      final instructions = [
+        await solana_anchor.AnchorInstruction.forMethod(
+          programId: programIdPublicKey,
+          method: 'savescore',
+          arguments:
+              solana_encoder.ByteArray(anchor_types_parameters.ScoreArguments(
+            game: 1,
+            score: score,
+          ).toBorsh().toList()),
+          accounts: <solana_encoder.AccountMeta>[
+            solana_encoder.AccountMeta.writeable(
+                pubKey: gscorePda, isSigner: false),
+            solana_encoder.AccountMeta.writeable(
+                pubKey: mainWalletSolana.publicKey, isSigner: true),
+            solana_encoder.AccountMeta.writeable(
+                pubKey: dinoTest, isSigner: false),
+            solana_encoder.AccountMeta.readonly(
+                pubKey: systemProgramId, isSigner: false),
+          ],
+          namespace: 'global',
+        ),
+      ];
+      final message = solana.Message(instructions: instructions);
+      final signature = await client.sendAndConfirmTransaction(
+        message: message,
+        signers: [mainWalletSolana],
+        commitment: solana.Commitment.confirmed,
+      );
+
+      print('Tx successful with hash: $signature');
+      showrResultMessage(signature);
+    } catch (e) {
+      final snackBar = SnackBar(
+        content: Text(
+          'Error: $e',
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.red,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    } finally {
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+}
+
+Future<void> _launchUrl() async {
+  Uri url = Uri(scheme: 'https', host: 'x.com', path: '/din0gr0w');
+  if (!await launchUrl(url)) {
+    throw Exception('Could not launch $url');
   }
 }

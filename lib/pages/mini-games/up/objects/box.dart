@@ -42,7 +42,7 @@ class Box extends BodyComponent with ContactCallbacks {
     final bodyDef = BodyDef(
       userData: this,
       //position: Vector2(worldSize.x / 2, worldSize.y - 3), change dino position later
-      position: Vector2(rnd.nextDouble() * 3, 0),
+      position: Vector2(rnd.nextDouble() * 2.5, -1),
       type: BodyType.dynamic,
       gravityOverride: Vector2(0, rnd.nextDouble() * 3 + 1),
     );

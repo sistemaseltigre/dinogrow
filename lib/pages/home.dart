@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _balance;
   SolanaClient? client;
   final storage = const FlutterSecureStorage();
+
   @override
   void initState() {
     super.initState();
