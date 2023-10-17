@@ -22,13 +22,9 @@ import 'package:solana/anchor.dart' as solana_anchor;
 import 'package:solana/encoder.dart' as solana_encoder;
 import 'package:solana_common/utils/buffer.dart' as solana_buffer;
 
-final screenSize = Vector2(720, 1280);
-
-// Scaled viewport size
-final worldSize = Vector2(7.2, 12.8);
-
 class DownGame extends Forge2DGame with TapDetector {
   final void Function(String) endGameCallback;
+
   // setup the game camera to match the device size
   DownGame(this.endGameCallback) : super(zoom: 100, gravity: Vector2(0, 15));
 
@@ -138,10 +134,15 @@ class DownGame extends Forge2DGame with TapDetector {
 
   @override
   Future<void> onLoad() async {
+    final screenSize = Vector2(size.x, size.y);
+
+    // Scaled viewport size
+    final worldSize = Vector2(7.2, 12.8);
+
     await super.onLoad();
 
     final camera =
-        CameraComponent.withFixedResolution(width: 720, height: 1280);
+        CameraComponent.withFixedResolution(width: size.x, height: size.y);
     final background = _Background(size: screenSize);
     camera.viewport.add(background);
     if (dino.isLoaded) {
@@ -286,6 +287,7 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("assets/images/up/maps/01/up_map_1.jpeg"),
@@ -313,7 +315,7 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
       builder: (BuildContext context) => AlertDialog(
         title: const Text('Welcome to Down'),
         content: const Text(
-            "The aim of this minigame is avoid all boxes that come from up, while you avoid more boxes you will have great score, good luck and ... \n\n¡Watch out with the boxes! \n\nREMEMBER: you could save your score on the blockchain but you'll need at least 0.5 SOL in your wallet balance"),
+            "The goal for this minigame is to avoid the boxes coming from above. The more boxes you avoid, the greater your score!\n\nWatch out for the boxes! \n\nREMEMBER: You can save your score on the blockchain but you'll need at least 0.5 SOL in your wallet balance"),
         actions: <Widget>[
           TextButton(
             onPressed: () {
@@ -342,9 +344,9 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: const Text('Ups ... game ended :('),
+        title: const Text('Oops ... game over :('),
         content: Text(
-            "Thanks for play! Congrats you score was: $score \n\nDo you want to save and share it in Ranking? Remember this has a cost so you must have at least 0.5 SOL in your wallet balance."),
+            "Thanks for playing! Congrats you score was: $score \n\nDo you want to save and share it in Ranking? Remember this has a cost so you must have at least 0.5 SOL in your wallet balance."),
         actions: <Widget>[
           TextButton(
             onPressed: () {
@@ -356,9 +358,37 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              saveScore(int.parse(score));
+              showConfirmSendMessage(int.parse(score));
             },
             child: const Text("Send my score"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  showConfirmSendMessage(int score) {
+    showDialog<String>(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Rewrite your score'),
+        content: const Text(
+            "Are you sure rewrite your last score with this new one?\n\nCAUTION: You can't reverse this transaction and you'll lost your before score."),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              showWelcome();
+            },
+            child: const Text('Play again'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              saveScore(score);
+            },
+            child: const Text("Confirm"),
           ),
         ],
       ),
