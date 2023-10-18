@@ -29,16 +29,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final statusBarHeight = MediaQuery.of(context).viewPadding.top;
+
     return DefaultTabController(
       length: 4,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: const Color.fromRGBO(241, 189, 57, 1),
           elevation: 6,
-          toolbarHeight: 120,
+          toolbarHeight: 122 + (statusBarHeight > 0 ? 41 : 0) - statusBarHeight,
           flexibleSpace: Column(
             children: [
-              const SizedBox(height: 38),
+              SizedBox(height: statusBarHeight),
               Card(
                 color: Colors.white,
                 shadowColor: Colors.white,
@@ -58,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _publicKey == null
                             ? 'Loading...'
                             : '${_publicKey!.substring(0, 6)}...${_publicKey!.substring(_publicKey!.length - 6, _publicKey!.length)}',
+                        maxLines: 1,
                         style: const TextStyle(color: Colors.black),
                       )),
                       const SizedBox(width: 12),
@@ -71,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           _balance != null
                               ? double.parse(_balance ?? '0').toStringAsFixed(2)
                               : 'Loading...',
+                          maxLines: 1,
                           style: const TextStyle(color: Colors.black)),
                       const SizedBox(width: 3),
                       const Text('SOL',
@@ -119,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               const MiniGamesScreen(),
-              RankingScreen(),
+              const RankingScreen(),
               MydinogrowScreen(
                   address: _publicKey ?? '', getBalance: () => _getBalance()),
               WalletScreen(

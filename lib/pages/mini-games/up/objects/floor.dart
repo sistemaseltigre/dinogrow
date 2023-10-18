@@ -1,12 +1,14 @@
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:dinogrow/pages/mini-games/up/up.dart';
 
 class Floor extends BodyComponent {
+  final Vector2 worldSize;
+  Floor(this.worldSize);
+
   @override
   Body createBody() {
     final bodyDef = BodyDef(
       userData: this,
-      position: Vector2(0, worldSize.y - 5.7),
+      position: Vector2(0, worldSize.y - 1),
       type: BodyType.static,
     );
 
@@ -19,10 +21,13 @@ class Floor extends BodyComponent {
 }
 
 class LeftWall extends BodyComponent {
+  final Vector2 worldSize;
+  LeftWall(this.worldSize);
+
   @override
   Body createBody() {
     final bodyDef = BodyDef(
-      position: Vector2(-0.3, 0),
+      position: Vector2(0, 0),
       type: BodyType.static,
     );
 
@@ -35,10 +40,13 @@ class LeftWall extends BodyComponent {
 }
 
 class RightWall extends BodyComponent {
+  final Vector2 worldSize;
+  RightWall(this.worldSize);
+
   @override
   Body createBody() {
     final bodyDef = BodyDef(
-      position: Vector2(worldSize.x - 3, 0),
+      position: Vector2(worldSize.x, 0),
       type: BodyType.static,
     );
 

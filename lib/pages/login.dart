@@ -57,13 +57,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 60),
+                    const Expanded(child: SizedBox()),
                     const IntroLogoWidget(),
-                    const SizedBox(height: 30),
+                    const Expanded(child: SizedBox()),
                     const TextBoxWidget(
                         text:
                             'To continue, please enter your current password'),
-                    const SizedBox(height: 16),
+                    const Expanded(child: SizedBox()),
                     Form(
                       key: _formKey,
                       child: Column(
@@ -81,13 +81,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           IntroButtonWidget(
                             text: 'Login',
                             onPressed: _onSubmit,
                           ),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 12),
                           IntroButtonWidget(
                             text: 'Use different Account',
                             onPressed: () {
@@ -97,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 60),
+                    const Expanded(child: SizedBox()),
                   ]),
             ),
           ),

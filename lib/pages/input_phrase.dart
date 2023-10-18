@@ -13,7 +13,6 @@ class InputPhraseScreen extends StatefulWidget {
 
 class _InputPhraseScreenState extends State<InputPhraseScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool validationFailed = false;
   var controllers =
       List<TextEditingController>.generate(12, (i) => TextEditingController());
 
@@ -70,50 +69,46 @@ class _InputPhraseScreenState extends State<InputPhraseScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const SizedBox(height: 60),
+                  const Expanded(child: SizedBox()),
                   const TextBoxWidget(
                       text: 'Please enter your recovery phrase'),
+                  const Expanded(child: SizedBox()),
                   Center(
                     child: Form(
                       key: _formKey,
                       child: SizedBox(
-                          width: 300,
                           child: GridView.count(
-                            padding: const EdgeInsets.all(3),
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 3,
-                            shrinkWrap: true,
-                            crossAxisCount: 3,
-                            children: List.generate(12, (index) {
-                              return SizedBox(
-                                height: 50,
-                                child: TextFormField(
-                                  controller: controllers[index],
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: Colors.black,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    hintText: '${index + 1}',
-                                  ),
-                                  textInputAction: TextInputAction.next,
+                        padding: const EdgeInsets.all(3),
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 3,
+                        shrinkWrap: true,
+                        crossAxisCount: 3,
+                        children: List.generate(12, (index) {
+                          return SizedBox(
+                            height: 50,
+                            child: TextFormField(
+                              controller: controllers[index],
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.black,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                              );
-                            }),
-                          )),
+                                hintText: '${index + 1}',
+                              ),
+                              textInputAction: TextInputAction.next,
+                            ),
+                          );
+                        }),
+                      )),
                     ),
                   ),
-                  validationFailed
-                      ? const TextBoxWidget(text: 'Invalid keyphrase')
-                      : const SizedBox(),
                   IntroButtonWidget(
                     text: 'Continue',
                     onPressed: () {
                       _onSubmit(context);
                     },
                   ),
-                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -147,9 +142,15 @@ class _InputPhraseScreenState extends State<InputPhraseScreen> {
           },
         );
       } else {
-        setState(() {
-          validationFailed = true;
-        });
+        const snackBar = SnackBar(
+          content: Text(
+            'Error: Invalid keyphrase',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }
     }
   }

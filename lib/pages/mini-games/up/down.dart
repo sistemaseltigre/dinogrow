@@ -135,9 +135,8 @@ class DownGame extends Forge2DGame with TapDetector {
   @override
   Future<void> onLoad() async {
     final screenSize = Vector2(size.x, size.y);
-
     // Scaled viewport size
-    final worldSize = Vector2(7.2, 12.8);
+    final worldSize = screenSize;
 
     await super.onLoad();
 
@@ -157,9 +156,9 @@ class DownGame extends Forge2DGame with TapDetector {
     //     windowSize: 60,
     //     textRenderer: TextPaint(style: const TextStyle(color: Colors.white))));
 
-    add(Floor());
-    add(LeftWall());
-    add(RightWall());
+    add(Floor(worldSize));
+    add(LeftWall(worldSize));
+    add(RightWall(worldSize));
 
     //Testing
     // Add instance of Box
@@ -168,36 +167,41 @@ class DownGame extends Forge2DGame with TapDetector {
       endGameCallback('$score');
     }
 
-    newBoxAndScore() {
+    newBoxAndScore() async {
       score += 1;
       scoreText.text = 'Score: ${score.toString().padLeft(3, '0')}';
-      add(Box(newBoxAndScore, finishGame));
+
+      await Future.delayed(const Duration(milliseconds: 1000), () {
+        add(Box(newBoxAndScore, finishGame, worldSize));
+      });
     }
 
-    add(Box(newBoxAndScore, finishGame));
+    await Future.delayed(const Duration(milliseconds: 1000), () {
+      add(Box(newBoxAndScore, finishGame, worldSize));
+    });
 
     // Render floor
     final boxFloor1 = BoxFloor()
       ..x = 1
-      ..y = worldSize.y - 5.7;
+      ..y = worldSize.y - 1;
     await boxFloor1.loadImage();
     add(boxFloor1);
 
     final boxFloor2 = BoxFloor()
       ..x = 2
-      ..y = worldSize.y - 5.7;
+      ..y = worldSize.y - 1;
     await boxFloor2.loadImage();
     add(boxFloor2);
 
     final leftFloor = LeftFloor()
       ..x = 0
-      ..y = worldSize.y - 5.7;
+      ..y = worldSize.y - 1;
     await leftFloor.loadImage();
     add(leftFloor);
 
     final rightFloor = RightFloor()
       ..x = 3
-      ..y = worldSize.y - 5.7;
+      ..y = worldSize.y - 1;
     await rightFloor.loadImage();
     add(rightFloor);
 
@@ -205,12 +209,14 @@ class DownGame extends Forge2DGame with TapDetector {
     add(dino);
 
     // add the buttons to the game
+    btnLeft.position = Vector2(0, worldSize.y - 1);
+    btnRight.position = Vector2(3, worldSize.y - 1);
     add(btnLeft);
     add(btnRight);
     // add(btnJump);
     // add(btnAttack);
-    add(btnJumpText);
-    add(btnAttackText);
+    // add(btnJumpText);
+    // add(btnAttackText);
 
     // Score text
     final btnStyleLetters = TextPaint(

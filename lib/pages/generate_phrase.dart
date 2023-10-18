@@ -41,7 +41,7 @@ class _GeneratePhraseScreenState extends State<GeneratePhraseScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SizedBox(height: 60),
+              const Expanded(child: SizedBox()),
               Container(
                 color: Colors.orange[700],
                 padding: const EdgeInsets.all(8),
@@ -51,7 +51,9 @@ class _GeneratePhraseScreenState extends State<GeneratePhraseScreen> {
                   textAlign: TextAlign.center,
                 ),
               ),
+              const Expanded(child: SizedBox()),
               TextBoxWidget(text: _mnemonic),
+              const Expanded(child: SizedBox()),
               IntroButtonWidget(
                 text: 'Copy phrase',
                 onPressed: () {
@@ -63,6 +65,7 @@ class _GeneratePhraseScreenState extends State<GeneratePhraseScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(snackBar);
                 },
               ),
+              const Expanded(child: SizedBox()),
               Container(
                   decoration: const BoxDecoration(color: Colors.black),
                   child: Row(
@@ -76,9 +79,15 @@ class _GeneratePhraseScreenState extends State<GeneratePhraseScreen> {
                           });
                         },
                       ),
-                      const Text("I have stored the recovery phrase securely"),
+                      const Expanded(
+                        child: Text(
+                          "I have stored the recovery phrase securely",
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ],
                   )),
+              const Expanded(child: SizedBox()),
               IntroButtonWidget(
                 text: 'Continue',
                 variant: _copied ? 'primary' : 'disabled',
@@ -95,7 +104,6 @@ class _GeneratePhraseScreenState extends State<GeneratePhraseScreen> {
                       }
                     : () {},
               ),
-              const SizedBox(height: 60),
             ],
           ),
         ),

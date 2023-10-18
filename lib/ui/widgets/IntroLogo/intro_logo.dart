@@ -42,6 +42,8 @@ class _IntroLogoWidgetState extends State<IntroLogoWidget>
 
   @override
   Widget build(BuildContext context) {
+    double widthLogo = MediaQuery.of(context).size.width * .5;
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) => Transform.rotate(
@@ -57,13 +59,13 @@ class _IntroLogoWidgetState extends State<IntroLogoWidget>
               blurRadius: 6,
             ),
           ],
-          borderRadius: BorderRadius.circular(120),
+          borderRadius: BorderRadius.circular(widthLogo / 2),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(120),
+          borderRadius: BorderRadius.circular(widthLogo / 2),
           child: Image.asset(
             'assets/images/logo.jpeg',
-            width: 210,
+            width: widthLogo,
           ),
         ),
       ),
