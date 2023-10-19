@@ -40,6 +40,7 @@ class IntroButtonWidget extends StatelessWidget {
             color: Color.fromRGBO(34, 38, 59, 1),
             fontWeight: FontWeight.bold,
             fontSize: 24),
+        textAlign: TextAlign.center,
       ),
     );
   }

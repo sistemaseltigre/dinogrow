@@ -135,9 +135,8 @@ class DownGame extends Forge2DGame with TapDetector {
   @override
   Future<void> onLoad() async {
     final screenSize = Vector2(size.x, size.y);
-
     // Scaled viewport size
-    final worldSize = Vector2(7.2, 12.8);
+    final worldSize = screenSize;
 
     await super.onLoad();
 
@@ -157,9 +156,9 @@ class DownGame extends Forge2DGame with TapDetector {
     //     windowSize: 60,
     //     textRenderer: TextPaint(style: const TextStyle(color: Colors.white))));
 
-    add(Floor());
-    add(LeftWall());
-    add(RightWall());
+    add(Floor(worldSize));
+    add(LeftWall(worldSize));
+    add(RightWall(worldSize));
 
     //Testing
     // Add instance of Box
@@ -168,36 +167,41 @@ class DownGame extends Forge2DGame with TapDetector {
       endGameCallback('$score');
     }
 
-    newBoxAndScore() {
+    newBoxAndScore() async {
       score += 1;
       scoreText.text = 'Score: ${score.toString().padLeft(3, '0')}';
-      add(Box(newBoxAndScore, finishGame));
+
+      await Future.delayed(const Duration(milliseconds: 1000), () {
+        add(Box(newBoxAndScore, finishGame, worldSize));
+      });
     }
 
-    add(Box(newBoxAndScore, finishGame));
+    await Future.delayed(const Duration(milliseconds: 1000), () {
+      add(Box(newBoxAndScore, finishGame, worldSize));
+    });
 
     // Render floor
     final boxFloor1 = BoxFloor()
       ..x = 1
-      ..y = worldSize.y - 5.7;
+      ..y = worldSize.y - 1;
     await boxFloor1.loadImage();
     add(boxFloor1);
 
     final boxFloor2 = BoxFloor()
       ..x = 2
-      ..y = worldSize.y - 5.7;
+      ..y = worldSize.y - 1;
     await boxFloor2.loadImage();
     add(boxFloor2);
 
     final leftFloor = LeftFloor()
       ..x = 0
-      ..y = worldSize.y - 5.7;
+      ..y = worldSize.y - 1;
     await leftFloor.loadImage();
     add(leftFloor);
 
     final rightFloor = RightFloor()
       ..x = 3
-      ..y = worldSize.y - 5.7;
+      ..y = worldSize.y - 1;
     await rightFloor.loadImage();
     add(rightFloor);
 
@@ -205,12 +209,14 @@ class DownGame extends Forge2DGame with TapDetector {
     add(dino);
 
     // add the buttons to the game
+    btnLeft.position = Vector2(0, worldSize.y - 1);
+    btnRight.position = Vector2(3, worldSize.y - 1);
     add(btnLeft);
     add(btnRight);
     // add(btnJump);
     // add(btnAttack);
-    add(btnJumpText);
-    add(btnAttackText);
+    // add(btnJumpText);
+    // add(btnAttackText);
 
     // Score text
     final btnStyleLetters = TextPaint(
@@ -222,8 +228,8 @@ class DownGame extends Forge2DGame with TapDetector {
 
     scoreText = TextComponent(
       text: 'Score: 000',
-      anchor: Anchor.topRight,
-      position: Vector2(3.7, 0.65),
+      anchor: Anchor.center,
+      position: Vector2(worldSize.x / 2, 1),
       textRenderer: btnStyleLetters,
     );
 
@@ -259,6 +265,7 @@ class GameWidgetDown extends StatefulWidget {
 class _GameWidgetDownState extends State<GameWidgetDown> {
   DownGame game = DownGame((String data) {});
   bool loading = true;
+  bool paused = false;
 
   @override
   void initState() {
@@ -284,24 +291,35 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
             GoRouter.of(context).pop();
           },
         ),
+        actions: [
+          IconButton(
+            iconSize: 42,
+            icon: Icon(paused ? Icons.play_circle : Icons.pause_circle),
+            onPressed: () {
+              setState(() {
+                game.paused = !game.paused;
+                paused = !paused;
+              });
+            },
+          )
+        ],
       ),
       body: Container(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/images/up/maps/01/up_map_1.jpeg"),
-            fit: BoxFit.cover,
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/images/up/maps/01/up_map_1.jpeg"),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: loading
-            ? const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.black,
-                ),
-              )
-            : GameWidget(game: game),
-      ),
+          child: loading
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.black,
+                  ),
+                )
+              : GameWidget(game: game)),
     );
   }
 
@@ -330,6 +348,12 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
               setState(() {
                 loading = false;
                 game = DownGame(showEndMessage);
+                game.paused = true;
+
+                Future.delayed(const Duration(seconds: 1), () {
+                  game.paused = false;
+                  paused = false;
+                });
               });
             },
             child: const Text("Let's go!"),
@@ -340,6 +364,8 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
   }
 
   showEndMessage(String score) {
+    game.paused = true;
+
     showDialog<String>(
       barrierDismissible: false,
       context: context,
@@ -413,9 +439,9 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pop(context);
+              showWelcome();
             },
-            child: const Text("Go to minigames"),
+            child: const Text("Play again"),
           ),
         ],
       ),

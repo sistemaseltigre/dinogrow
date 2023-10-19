@@ -123,7 +123,7 @@ class UpGame extends Forge2DGame with TapDetector {
         windowSize: 60,
         textRenderer: TextPaint(style: const TextStyle(color: Colors.white))));
 
-    add(Floor());
+    add(Floor(worldSize));
 
     //Testing
     // Add instance of Box

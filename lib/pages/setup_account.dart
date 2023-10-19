@@ -24,8 +24,9 @@ class SetUpScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                const Expanded(child: SizedBox()),
                 const IntroLogoWidget(),
-                const SizedBox(height: 120),
+                const Expanded(child: SizedBox()),
                 IntroButtonWidget(
                   text: 'I have a recovery Phrase',
                   onPressed: () => context.push('/inputphrase'),
@@ -35,6 +36,7 @@ class SetUpScreen extends StatelessWidget {
                   text: 'Generate new wallet',
                   onPressed: () => context.push('/generatePhrase'),
                 ),
+                const Expanded(child: SizedBox()),
               ],
             ),
           ),

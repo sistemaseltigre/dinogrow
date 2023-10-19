@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:dinogrow/pages/mini-games/up/objects/floor.dart';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 
@@ -9,8 +8,10 @@ import 'dino.dart';
 class Box extends BodyComponent with ContactCallbacks {
   final Function onCollisionBox;
   final Function onCollisionDino;
+  final Vector2 worldSize;
 
-  Box(this.onCollisionBox, this.onCollisionDino) : super(priority: 1);
+  Box(this.onCollisionBox, this.onCollisionDino, this.worldSize)
+      : super(priority: 1);
 
   @override
   Future<void> onLoad() async {
@@ -28,21 +29,23 @@ class Box extends BodyComponent with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     removeFromParent();
-    if (other is Floor) {
-      onCollisionBox();
-    } else if (other is Dino) {
+    if (other is Dino) {
       onCollisionDino();
     }
+    onCollisionBox();
   }
 
   @override
   Body createBody() {
     final rnd = Random();
-
+    final xpos = (rnd.nextDouble() * (worldSize.x - 0.5)).abs();
     final bodyDef = BodyDef(
       userData: this,
-      //position: Vector2(worldSize.x / 2, worldSize.y - 3), change dino position later
-      position: Vector2(rnd.nextDouble() * 2.8 + 0.2, -1),
+      position: Vector2(
+          xpos > 0.6
+              ? (xpos < (worldSize.x - 0.5) ? (xpos) : worldSize.x - 0.5)
+              : 0.6,
+          -1),
       type: BodyType.dynamic,
       gravityOverride: Vector2(0, rnd.nextDouble() * 3 + 2),
     );
