@@ -284,7 +284,7 @@ class Dino extends BodyComponent with KeyboardHandler {
     final bodyDef = BodyDef(
       userData: this,
       //position: Vector2(worldSize.x / 2, worldSize.y - 3), change dino position later
-      position: Vector2(2, 3),
+      position: Vector2(2, 3.5),
       type: BodyType.dynamic,
     );
 

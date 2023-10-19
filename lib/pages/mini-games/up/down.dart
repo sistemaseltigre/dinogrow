@@ -228,8 +228,8 @@ class DownGame extends Forge2DGame with TapDetector {
 
     scoreText = TextComponent(
       text: 'Score: 000',
-      anchor: Anchor.topRight,
-      position: Vector2(3.7, 0.65),
+      anchor: Anchor.center,
+      position: Vector2(worldSize.x / 2, 1),
       textRenderer: btnStyleLetters,
     );
 
@@ -265,6 +265,7 @@ class GameWidgetDown extends StatefulWidget {
 class _GameWidgetDownState extends State<GameWidgetDown> {
   DownGame game = DownGame((String data) {});
   bool loading = true;
+  bool paused = false;
 
   @override
   void initState() {
@@ -290,24 +291,35 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
             GoRouter.of(context).pop();
           },
         ),
+        actions: [
+          IconButton(
+            iconSize: 42,
+            icon: Icon(paused ? Icons.play_circle : Icons.pause_circle),
+            onPressed: () {
+              setState(() {
+                game.paused = !game.paused;
+                paused = !paused;
+              });
+            },
+          )
+        ],
       ),
       body: Container(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/images/up/maps/01/up_map_1.jpeg"),
-            fit: BoxFit.cover,
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/images/up/maps/01/up_map_1.jpeg"),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: loading
-            ? const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.black,
-                ),
-              )
-            : GameWidget(game: game),
-      ),
+          child: loading
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.black,
+                  ),
+                )
+              : GameWidget(game: game)),
     );
   }
 
@@ -336,6 +348,12 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
               setState(() {
                 loading = false;
                 game = DownGame(showEndMessage);
+                game.paused = true;
+
+                Future.delayed(const Duration(seconds: 1), () {
+                  game.paused = false;
+                  paused = false;
+                });
               });
             },
             child: const Text("Let's go!"),
@@ -346,6 +364,8 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
   }
 
   showEndMessage(String score) {
+    game.paused = true;
+
     showDialog<String>(
       barrierDismissible: false,
       context: context,
@@ -419,9 +439,9 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pop(context);
+              showWelcome();
             },
-            child: const Text("Go to minigames"),
+            child: const Text("Play again"),
           ),
         ],
       ),

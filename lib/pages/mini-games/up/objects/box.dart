@@ -38,12 +38,14 @@ class Box extends BodyComponent with ContactCallbacks {
   @override
   Body createBody() {
     final rnd = Random();
-    final xpos = (rnd.nextDouble() * (worldSize.x - 1)).abs();
-    print('xpos: ${xpos}');
+    final xpos = (rnd.nextDouble() * (worldSize.x - 0.5)).abs();
     final bodyDef = BodyDef(
       userData: this,
-      //position: Vector2(worldSize.x / 2, worldSize.y - 3), change dino position later
-      position: Vector2(xpos, -1),
+      position: Vector2(
+          xpos > 0.6
+              ? (xpos < (worldSize.x - 0.5) ? (xpos) : worldSize.x - 0.5)
+              : 0.6,
+          -1),
       type: BodyType.dynamic,
       gravityOverride: Vector2(0, rnd.nextDouble() * 3 + 2),
     );
