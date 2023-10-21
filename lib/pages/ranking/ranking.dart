@@ -11,6 +11,7 @@ import 'dart:convert';
 // import 'package:solana_common/borsh/borsh.dart' as solana_borsh;
 import '../../anchor_types/dino_score_info.dart' as anchor_types_dino;
 import '../../anchor_types/dino_game_info.dart' as anchor_types_dino_game;
+import '../../anchor_types/get_dino_score.dart' as anchor_types_dino_score;
 import '../../ui/widgets/widgets.dart';
 
 class RankingScreen extends StatefulWidget {
@@ -146,13 +147,18 @@ class _RankingScreenState extends State<RankingScreen> {
       // Obtener todas las cuentas del programa
       final accounts = await client.rpcClient.getProgramAccounts(
         programId,
-        encoding: Encoding.jsonParsed,
+        encoding: Encoding.base64,
       );
 
       // Recorre las cuentas y muestra los datos
       for (var account
           in (accounts.length <= 15 ? accounts : accounts.sublist(0, 15))) {
         final bytes = account.account.data as BinaryAccountData;
+
+        //Get all data
+        final decodeAllData =
+            anchor_types_dino_score.GetScoreArguments.fromBorsh(
+                bytes.data as Uint8List);
 
         //Get Score
         final decoderDataScore = anchor_types_dino.DinoScoreArguments.fromBorsh(
@@ -164,7 +170,7 @@ class _RankingScreenState extends State<RankingScreen> {
                 bytes.data as Uint8List);
 
         String? localImgUrl =
-            await storage.read(key: '${decoderDataGame.dinoPubkey}');
+            await storage.read(key: '${decodeAllData.dinokey}');
 
         if (localImgUrl == null) {
           final response = await http.post(
@@ -176,7 +182,7 @@ class _RankingScreenState extends State<RankingScreen> {
               body: jsonEncode({
                 "method": "qn_fetchNFTs",
                 "params": {
-                  "wallet": '${decoderDataGame.playerPubkey}',
+                  "wallet": '${decodeAllData.playerkey}',
                   "page": 1,
                   "perPage": 10
                 }
@@ -187,32 +193,32 @@ class _RankingScreenState extends State<RankingScreen> {
           if (dataResponse.isNotEmpty) {
             final arrayAssets = dataResponse['result']['assets'];
             final indexNft = arrayAssets.indexWhere((item) =>
-                item["tokenAddress"] == '${decoderDataGame.dinoPubkey}');
+                item["tokenAddress"] == '${decodeAllData.dinokey}');
             String imgurl = indexNft > -1
                 ? arrayAssets[int.parse('$indexNft')]['imageUrl']
                 : '';
 
             await storage.write(
-                key: '${decoderDataGame.dinoPubkey}', value: imgurl);
+                key: '${decodeAllData.dinokey}', value: imgurl);
 
             items2save.add(ItemsProps(
                 imageUrl: imgurl,
-                dinoPubkey: '${decoderDataGame.dinoPubkey}',
-                gamescore: '${decoderDataScore.gamescore}',
-                playerPubkey: '${decoderDataGame.playerPubkey}'));
+                dinoPubkey: '${decodeAllData.dinokey}',
+                gamescore: '${decodeAllData.score}',
+                playerPubkey: '${decodeAllData.playerkey}'));
           } else {
             items2save.add(ItemsProps(
                 imageUrl: '',
-                dinoPubkey: '${decoderDataGame.dinoPubkey}',
-                gamescore: '${decoderDataScore.gamescore}',
-                playerPubkey: '${decoderDataGame.playerPubkey}'));
+                dinoPubkey: '${decodeAllData.dinokey}',
+                gamescore: '${decodeAllData.score}',
+                playerPubkey: '${decodeAllData.playerkey}'));
           }
         } else {
           items2save.add(ItemsProps(
               imageUrl: localImgUrl,
-              dinoPubkey: '${decoderDataGame.dinoPubkey}',
-              gamescore: '${decoderDataScore.gamescore}',
-              playerPubkey: '${decoderDataGame.playerPubkey}'));
+              dinoPubkey: '${decodeAllData.dinokey}',
+              gamescore: '${decodeAllData.score}',
+              playerPubkey: '${decodeAllData.playerkey}'));
         }
       }
 

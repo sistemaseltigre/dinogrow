@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dinogrow/pages/mini-games/up/buttons.dart';
 import 'package:dinogrow/pages/mini-games/up/objects/dino.dart';
 import 'package:flame/palette.dart';
@@ -11,8 +13,9 @@ import 'objects/floor.dart';
 import 'objects/box.dart';
 import 'package:flame/timer.dart' as timer_flame;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:solana_web3/solana_web3.dart' as web3;
 
-import '../../../anchor_types/score_parameters.dart' as anchor_types_parameters;
+import '../../../anchor_types/put_dino_score.dart' as anchor_types_parameters;
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -469,6 +472,19 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
         mainWalletKey!,
       );
 
+       //Generate internal wallet
+      String dinoString = dotenv.env['DINO_KEY'].toString();
+      dinoString = dinoString.replaceAll(RegExp(r'\[|\]'), '');
+      List<String> valueStrings = dinoString.split(',');
+      List<int> integerList =
+          (valueStrings).map((value) => int.parse(value)).toList();
+      Uint8List secretKey = Uint8List.fromList(integerList);
+      final keypair = await web3.Keypair.fromSecretKey(secretKey);
+      //path: "m/44'/501'/0'/0'/0'",
+      String hdPath = dotenv.env['HD_PATH'].toString();
+      final walletdino = await solana.Ed25519HDKeyPair.fromSeedWithHdPath(
+          seed: keypair.secretKey, hdPath: hdPath);
+
       final programId = dotenv.env['PROGRAM_ID'].toString();
       final systemProgramId =
           solana.Ed25519HDPublicKey.fromBase58(solana.SystemProgram.programId);
@@ -488,7 +504,7 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
       final gscorePda = await solana.Ed25519HDPublicKey.findProgramAddress(
           programId: programIdPublicKey,
           seeds: [
-            solana_buffer.Buffer.fromString("score"),
+            solana_buffer.Buffer.fromString(dotenv.env['SCORE_SEED'].toString()),
             mainWalletSolana.publicKey.bytes,
             dinoTest.bytes,
             solana_buffer.Buffer.fromInt32(1),
@@ -500,7 +516,7 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
           programId: programIdPublicKey,
           method: 'savescore',
           arguments:
-              solana_encoder.ByteArray(anchor_types_parameters.ScoreArguments(
+              solana_encoder.ByteArray(anchor_types_parameters.PutScoreArguments(
             game: 1,
             score: score,
           ).toBorsh().toList()),
@@ -513,6 +529,8 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
                 pubKey: dinoTest, isSigner: false),
             solana_encoder.AccountMeta.readonly(
                 pubKey: systemProgramId, isSigner: false),
+            solana_encoder.AccountMeta.writeable(
+                pubKey: walletdino.publicKey, isSigner: true),
           ],
           namespace: 'global',
         ),
@@ -520,7 +538,7 @@ class _GameWidgetDownState extends State<GameWidgetDown> {
       final message = solana.Message(instructions: instructions);
       final signature = await client.sendAndConfirmTransaction(
         message: message,
-        signers: [mainWalletSolana],
+        signers: [mainWalletSolana, walletdino],
         commitment: solana.Commitment.confirmed,
       );
 
