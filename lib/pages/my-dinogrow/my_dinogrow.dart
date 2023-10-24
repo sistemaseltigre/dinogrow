@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:solana/solana.dart';
-import 'package:solana_common/utils/convert.dart';
 import 'package:solana_web3/solana_web3.dart' as web3;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -378,7 +377,6 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
       String hdPath = dotenv.env['HD_PATH'].toString();
       final walletdino = await solana.Ed25519HDKeyPair.fromSeedWithHdPath(
           seed: keypair.secretKey, hdPath: hdPath);
-     
 
       final mainWalletSolana = await solana.Ed25519HDKeyPair.fromMnemonic(
         mainWalletKey!,
@@ -508,7 +506,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
       final snackBar = SnackBar(
         content: Text('Error: $e', style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.red,
-      );      
+      );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     } finally {
       if (mounted) {
