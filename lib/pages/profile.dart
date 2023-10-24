@@ -162,7 +162,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         imageProfile = imageTemp;
       });
     } catch (e) {
-      print('Failed to pick image: $e');
+      final snackBar = SnackBar(
+        content: Text(
+          'Failed to pick image: $e',
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.red,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
   }
 
@@ -209,7 +217,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       const snackBar = SnackBar(
         content: Text(
           'Error: Please fill all fields to continue',
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.red,
       );
@@ -229,7 +237,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       final snackBar = SnackBar(
         content: Text(
-          e.toString(),
+          'Failed to save data: $e',
           style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.red,
