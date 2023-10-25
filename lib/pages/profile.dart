@@ -1,11 +1,22 @@
+import 'dart:typed_data';
+import 'package:solana/dto.dart';
+import 'package:dinogrow/pages/upload_to_ipfs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
 import 'dart:io';
-
+import 'package:solana_common/utils/buffer.dart' as solana_buffer;
+import 'package:solana_web3/solana_web3.dart' as web3;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:solana/solana.dart';
+import 'package:solana/solana.dart' as solana;
 import '../ui/widgets/widgets.dart';
+import 'package:solana/anchor.dart' as solana_anchor;
+import 'package:solana/encoder.dart' as solana_encoder;
+import '../anchor_types/put_profile_info.dart' as anchor_types_parameters;
+import '../anchor_types/get_profile_info.dart' as anchor_types_parameters_get;
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -231,6 +242,99 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _loading = true;
       });
+      var methodprogram = "saveprofile";
+      final findprofileb = await findprofile();
+      if (findprofileb != null) {
+        methodprogram = "updateprofile";
+        print('Profile found');
+        print(findprofileb.bio);
+        print(findprofileb.nickname);
+        print(findprofileb.status);
+        print(findprofileb.uri);
+        print(findprofileb.uri);
+        //https://quicknode.myfilebase.com/ipfs/+uri
+      } 
+      final String? cid = await uploadToIPFS(imageProfile);
+
+      //save profile
+      await dotenv.load(fileName: ".env");
+
+      SolanaClient? client;
+      client = SolanaClient(
+        rpcUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
+        websocketUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_WSS'].toString()),
+      );
+      const storage = FlutterSecureStorage();
+
+      final mainWalletKey = await storage.read(key: 'mnemonic');
+
+      final mainWalletSolana = await solana.Ed25519HDKeyPair.fromMnemonic(
+        mainWalletKey!,
+      );
+
+      //Generate internal wallet
+      String dinoString = dotenv.env['DINO_KEY'].toString();
+      dinoString = dinoString.replaceAll(RegExp(r'\[|\]'), '');
+      List<String> valueStrings = dinoString.split(',');
+      List<int> integerList =
+          (valueStrings).map((value) => int.parse(value)).toList();
+      Uint8List secretKey = Uint8List.fromList(integerList);
+      final keypair = await web3.Keypair.fromSecretKey(secretKey);
+      //path: "m/44'/501'/0'/0'/0'",
+      String hdPath = dotenv.env['HD_PATH'].toString();
+      final walletdino = await solana.Ed25519HDKeyPair.fromSeedWithHdPath(
+          seed: keypair.secretKey, hdPath: hdPath);
+
+      final programId = dotenv.env['PROGRAM_ID'].toString();
+      final systemProgramId =
+          solana.Ed25519HDPublicKey.fromBase58(solana.SystemProgram.programId);
+
+      final programIdPublicKey =
+          solana.Ed25519HDPublicKey.fromBase58(programId);
+
+      final dprofilePda = await solana.Ed25519HDPublicKey
+          .findProgramAddress(programId: programIdPublicKey, seeds: [
+        solana_buffer.Buffer.fromString(dotenv.env['PROFILE_SEED'].toString()),
+        mainWalletSolana.publicKey.bytes,
+      ]);
+
+      final instructions = [
+        await solana_anchor.AnchorInstruction.forMethod(
+          programId: programIdPublicKey,
+          method: methodprogram,
+          arguments: solana_encoder.ByteArray(
+              anchor_types_parameters.PutProfileArguments(
+            nickname: nicknameController.text,
+            bio: bioController.text,
+            status: statusController.text,
+            uri: cid as String,
+          ).toBorsh().toList()),
+          accounts: <solana_encoder.AccountMeta>[
+            solana_encoder.AccountMeta.writeable(
+                pubKey: dprofilePda, isSigner: false),
+            solana_encoder.AccountMeta.writeable(
+                pubKey: mainWalletSolana.publicKey, isSigner: true),
+            solana_encoder.AccountMeta.readonly(
+                pubKey: systemProgramId, isSigner: false),
+            solana_encoder.AccountMeta.writeable(
+                pubKey: walletdino.publicKey, isSigner: true),
+          ],
+          namespace: 'global',
+        ),
+      ];
+      final message = solana.Message(instructions: instructions);
+      final signature = await client.sendAndConfirmTransaction(
+        message: message,
+        signers: [mainWalletSolana, walletdino],
+        commitment: solana.Commitment.confirmed,
+      );
+
+      print('Tx successful with hash: $signature');
+
+      print(imageProfile.path);
+      print(nicknameController.text);
+      print(bioController.text);
+      print(statusController.text);
 
       // TODO update profile
       GoRouter.of(context).pop();
@@ -248,6 +352,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _loading = false;
       });
+    }
+  }
+
+  findprofile() async {
+    await dotenv.load(fileName: ".env");
+
+    SolanaClient? client;
+    client = SolanaClient(
+      rpcUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
+      websocketUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_WSS'].toString()),
+    );
+    const storage = FlutterSecureStorage();
+
+    final mainWalletKey = await storage.read(key: 'mnemonic');
+
+    final mainWalletSolana = await solana.Ed25519HDKeyPair.fromMnemonic(
+      mainWalletKey!,
+    );
+
+    final programId = dotenv.env['PROGRAM_ID'].toString();
+
+    final programIdPublicKey = solana.Ed25519HDPublicKey.fromBase58(programId);
+
+    final dprofilePda = await solana.Ed25519HDPublicKey
+        .findProgramAddress(programId: programIdPublicKey, seeds: [
+      solana_buffer.Buffer.fromString(dotenv.env['PROFILE_SEED'].toString()),
+      mainWalletSolana.publicKey.bytes,
+    ]);
+
+    // Obtener todas las cuentas del programa
+    final accountprofile = await client.rpcClient
+        .getAccountInfo(
+          dprofilePda.toBase58(),
+          encoding: Encoding.base64,
+        )
+        .value;
+
+    if (accountprofile != null) {
+      final bytes = accountprofile.data as BinaryAccountData;
+      final decodeAllData =
+          anchor_types_parameters_get.GetProfileArguments.fromBorsh(
+              bytes.data as Uint8List);
+      return decodeAllData;
+    } else {
+      print('No profile found');
+      return null;
     }
   }
 }
