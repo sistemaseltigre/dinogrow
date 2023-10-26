@@ -4,6 +4,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solana/solana.dart';
 
+import 'dart:typed_data';
+import 'package:solana/dto.dart';
+import 'dart:async';
+import 'package:solana_common/utils/buffer.dart' as solana_buffer;
+import 'package:solana/solana.dart' as solana;
+import '../ui/widgets/widgets.dart';
+import '../anchor_types/get_profile_info.dart' as anchor_types_parameters_get;
+
 import 'package:dinogrow/pages/my-dinogrow/my_dinogrow.dart';
 import 'package:dinogrow/pages/mini-games/mini_games.dart';
 import 'package:dinogrow/pages/ranking/ranking.dart';
@@ -21,12 +29,15 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _publicKey;
   String? _balance;
   SolanaClient? client;
+  String imageProfile = '';
+
   final storage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
     _readPk();
+    getInitialInfo();
   }
 
   @override
@@ -45,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(height: statusBarHeight),
               GestureDetector(
                 onTap: () {
-                  GoRouter.of(context).push('/profile');
+                  GoRouter.of(context).replace('/profile');
                 },
                 child: Card(
                   color: Colors.white,
@@ -58,10 +69,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(42),
-                          child: Image.asset(
-                            'assets/images/icons/no_user.png',
-                            width: 40,
-                          ),
+                          child: imageProfile.isEmpty
+                              ? Image.asset(
+                                  'assets/images/icons/no_user.png',
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.network(
+                                  imageProfile,
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -213,5 +233,78 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _balance = balance.toString();
     });
+  }
+
+  Future getInitialInfo() async {
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+
+      final findprofileb = await findprofile();
+
+      if (findprofileb != null) {
+        setState(() {
+          nickName = findprofileb.nickname;
+        });
+
+        if (findprofileb.uri.toString().isNotEmpty) {
+          setState(() {
+            imageProfile =
+                'https://quicknode.myfilebase.com/ipfs/${findprofileb.uri}';
+          });
+        }
+      }
+    } catch (e) {
+      ShowProps alert = ShowProps()
+        ..text = 'Error get profile data ($e)'
+        ..context = context
+        ..backgroundColor = Colors.red;
+
+      SnakAlertWidget().show(alert);
+    }
+  }
+
+  findprofile() async {
+    await dotenv.load(fileName: ".env");
+
+    SolanaClient? client;
+    client = SolanaClient(
+      rpcUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
+      websocketUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_WSS'].toString()),
+    );
+    const storage = FlutterSecureStorage();
+
+    final mainWalletKey = await storage.read(key: 'mnemonic');
+
+    final mainWalletSolana = await solana.Ed25519HDKeyPair.fromMnemonic(
+      mainWalletKey!,
+    );
+
+    final programId = dotenv.env['PROGRAM_ID'].toString();
+
+    final programIdPublicKey = solana.Ed25519HDPublicKey.fromBase58(programId);
+
+    final dprofilePda = await solana.Ed25519HDPublicKey
+        .findProgramAddress(programId: programIdPublicKey, seeds: [
+      solana_buffer.Buffer.fromString(dotenv.env['PROFILE_SEED'].toString()),
+      mainWalletSolana.publicKey.bytes,
+    ]);
+
+    // Obtener todas las cuentas del programa
+    final accountprofile = await client.rpcClient
+        .getAccountInfo(
+          dprofilePda.toBase58(),
+          encoding: Encoding.base64,
+        )
+        .value;
+
+    if (accountprofile != null) {
+      final bytes = accountprofile.data as BinaryAccountData;
+      final decodeAllData =
+          anchor_types_parameters_get.GetProfileArguments.fromBorsh(
+              bytes.data as Uint8List);
+      return decodeAllData;
+    } else {
+      return null;
+    }
   }
 }
