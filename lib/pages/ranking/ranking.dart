@@ -183,8 +183,7 @@ class _RankingScreenState extends State<RankingScreen> {
 
         final findprofileb = await findprofile('${decodeAllData.playerkey}');
         String nickName = '';
-        print('findprofileb: $findprofileb');
-        print('decodeAllData.playerkey: ${decodeAllData.playerkey}');
+
         if (findprofileb != null) {
           nickName = findprofileb.nickname;
         }
