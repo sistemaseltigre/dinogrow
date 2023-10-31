@@ -153,15 +153,12 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       GoRouter.of(context).pushReplacement("/home");
     } else {
-      const snackBar = SnackBar(
-        content: Text(
-          'Error: Invalid Password',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.red,
-      );
+      ShowProps alert = ShowProps()
+        ..text = 'Error: Invalid Password'
+        ..context = context
+        ..backgroundColor = Colors.red;
 
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      SnakAlertWidget().show(alert);
 
       setState(() {
         _loading = false;

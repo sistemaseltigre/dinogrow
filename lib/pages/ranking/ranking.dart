@@ -160,83 +160,79 @@ class _RankingScreenState extends State<RankingScreen> {
       );
 
       // Recorre las cuentas y muestra los datos
-      for (var account
-          in (accounts.length <= 15 ? accounts : accounts.sublist(0, 15))) {
-        final bytes = account.account.data as BinaryAccountData;
+      bool rankingCompleted = false;
 
-        //Get all data
-        final decodeAllData =
-            anchor_types_dino_score.GetScoreArguments.fromBorsh(
-                bytes.data as Uint8List);
+      for (var account in accounts) {
+        try {
+          if (!rankingCompleted) {
+            final bytes = account.account.data as BinaryAccountData;
 
-        // //Get Score
-        // final decoderDataScore = anchor_types_dino.DinoScoreArguments.fromBorsh(
-        //     bytes.data as Uint8List);
+            //Get all data
+            final decodeAllData =
+                anchor_types_dino_score.GetScoreArguments.fromBorsh(
+                    bytes.data as Uint8List);
 
-        // //Get Game Data
-        // final decoderDataGame =
-        //     anchor_types_dino_game.DinoGameArguments.fromBorsh(
-        //         bytes.data as Uint8List);
+            String? localImgUrl =
+                await storage.read(key: '${decodeAllData.dinokey}');
 
-        String? localImgUrl =
-            await storage.read(key: '${decodeAllData.dinokey}');
+            final findprofileb =
+                await findprofile('${decodeAllData.playerkey}');
+            String nickName = '';
 
-        final findprofileb = await findprofile('${decodeAllData.playerkey}');
-        String nickName = '';
+            if (findprofileb != null) {
+              nickName = findprofileb.nickname;
+            }
 
-        if (findprofileb != null) {
-          nickName = findprofileb.nickname;
-        }
-
-        if (localImgUrl == null) {
-          final response = await http.post(
-              Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
-              headers: <String, String>{
-                'Content-Type': 'application/json',
-                "x-qn-api-version": '1'
-              },
-              body: jsonEncode({
-                "method": "qn_fetchNFTs",
-                "params": {
-                  "wallet": '${decodeAllData.playerkey}',
-                  "page": 1,
-                  "perPage": 10
-                }
-              }));
-
-          final dataResponse = jsonDecode(response.body);
-
-          if (dataResponse.isNotEmpty) {
-            final arrayAssets = dataResponse['result']['assets'];
-            final indexNft = arrayAssets.indexWhere(
-                (item) => item["tokenAddress"] == '${decodeAllData.dinokey}');
-            String imgurl = indexNft > -1
-                ? arrayAssets[int.parse('$indexNft')]['imageUrl']
-                : '';
-
-            await storage.write(key: '${decodeAllData.dinokey}', value: imgurl);
-
-            items2save.add(ItemsProps(
-                nickName: nickName,
-                imageUrl: imgurl,
-                dinoPubkey: '${decodeAllData.dinokey}',
+            ItemsProps data2save = ItemsProps(
+                playerPubkey: '${decodeAllData.playerkey}',
                 gamescore: '${decodeAllData.score}',
-                playerPubkey: '${decodeAllData.playerkey}'));
-          } else {
-            items2save.add(ItemsProps(
-                nickName: nickName,
                 imageUrl: '',
                 dinoPubkey: '${decodeAllData.dinokey}',
-                gamescore: '${decodeAllData.score}',
-                playerPubkey: '${decodeAllData.playerkey}'));
+                nickName: nickName);
+
+            if (localImgUrl == null) {
+              final response = await http.post(
+                  Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
+                  headers: <String, String>{
+                    'Content-Type': 'application/json',
+                    "x-qn-api-version": '1'
+                  },
+                  body: jsonEncode({
+                    "method": "qn_fetchNFTs",
+                    "params": {
+                      "wallet": '${decodeAllData.playerkey}',
+                      "page": 1,
+                      "perPage": 10
+                    }
+                  }));
+
+              final dataResponse = jsonDecode(response.body);
+
+              if (dataResponse.isNotEmpty) {
+                final arrayAssets = dataResponse['result']['assets'];
+                final indexNft = arrayAssets.indexWhere((item) =>
+                    item["tokenAddress"] == '${decodeAllData.dinokey}');
+                String imgurl = indexNft > -1
+                    ? arrayAssets[int.parse('$indexNft')]['imageUrl']
+                    : '';
+
+                await storage.write(
+                    key: '${decodeAllData.dinokey}', value: imgurl);
+
+                data2save.imageUrl = imgurl;
+              }
+            } else {
+              data2save.imageUrl = localImgUrl;
+            }
+
+            items2save.add(data2save);
+
+            if (items2save.length >= 15) {
+              rankingCompleted = true;
+            }
           }
-        } else {
-          items2save.add(ItemsProps(
-              nickName: nickName,
-              imageUrl: localImgUrl,
-              dinoPubkey: '${decodeAllData.dinokey}',
-              gamescore: '${decodeAllData.score}',
-              playerPubkey: '${decodeAllData.playerkey}'));
+        } catch (e) {
+          print('User error: $e');
         }
       }
 

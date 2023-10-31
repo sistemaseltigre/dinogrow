@@ -30,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _balance;
   SolanaClient? client;
   String imageProfile = '';
+  bool loading = true;
 
   final storage = const FlutterSecureStorage();
 
@@ -37,7 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _readPk();
-    getInitialInfo();
   }
 
   @override
@@ -56,7 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(height: statusBarHeight),
               GestureDetector(
                 onTap: () {
-                  GoRouter.of(context).replace('/profile');
+                  if (!loading && _publicKey != null) {
+                    GoRouter.of(context).replace('/profile');
+                  }
                 },
                 child: Card(
                   color: Colors.white,
@@ -97,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              _publicKey == null
+                              loading || _publicKey == null
                                   ? 'Loading...'
                                   : '${_publicKey!.substring(0, 6)}...${_publicKey!.substring(_publicKey!.length - 6, _publicKey!.length)}',
                               maxLines: 1,
@@ -186,16 +188,23 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: TabBarView(
             physics: const NeverScrollableScrollPhysics(),
-            children: [
-              const MiniGamesScreen(),
-              const RankingScreen(),
-              MydinogrowScreen(
-                  address: _publicKey ?? '', getBalance: () => _getBalance()),
-              WalletScreen(
-                  address: _publicKey ?? '',
-                  balance: _balance,
-                  getBalance: () => _getBalance()),
-            ],
+            children: loading
+                ? List.filled(
+                    4,
+                    const Center(
+                      child: CircularProgressIndicator(),
+                    ))
+                : [
+                    const MiniGamesScreen(),
+                    const RankingScreen(),
+                    MydinogrowScreen(
+                        address: _publicKey ?? '',
+                        getBalance: () => _getBalance()),
+                    WalletScreen(
+                        address: _publicKey ?? '',
+                        balance: _balance,
+                        getBalance: () => _getBalance()),
+                  ],
           ),
         ),
       ),
@@ -214,25 +223,35 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _initializeClient() async {
-    await dotenv.load(fileName: ".env");
+    try {
+      setState(() {
+        loading = true;
+      });
+    } finally {
+      await dotenv.load(fileName: ".env");
 
-    client = SolanaClient(
-      rpcUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
-      websocketUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_WSS'].toString()),
-    );
-    _getBalance();
+      client = SolanaClient(
+        rpcUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
+        websocketUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_WSS'].toString()),
+      );
+      _getBalance();
+    }
   }
 
   void _getBalance() async {
-    setState(() {
-      _balance = null;
-    });
-    final getBalance = await client?.rpcClient
-        .getBalance(_publicKey!, commitment: Commitment.confirmed);
-    final balance = (getBalance!.value) / lamportsPerSol;
-    setState(() {
-      _balance = balance.toString();
-    });
+    try {
+      setState(() {
+        _balance = null;
+      });
+      final getBalance = await client?.rpcClient
+          .getBalance(_publicKey!, commitment: Commitment.confirmed);
+      final balance = (getBalance!.value) / lamportsPerSol;
+      setState(() {
+        _balance = balance.toString();
+      });
+    } finally {
+      getInitialInfo();
+    }
   }
 
   Future getInitialInfo() async {
@@ -260,6 +279,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ..backgroundColor = Colors.red;
 
       SnakAlertWidget().show(alert);
+    } finally {
+      setState(() {
+        loading = false;
+      });
     }
   }
 

@@ -1,8 +1,10 @@
 import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import 'package:solana/dto.dart';
 import 'package:dinogrow/pages/upload_to_ipfs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
@@ -12,6 +14,7 @@ import 'package:solana_web3/solana_web3.dart' as web3;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:solana/solana.dart';
 import 'package:solana/solana.dart' as solana;
+import 'package:url_launcher/url_launcher.dart';
 import '../ui/widgets/widgets.dart';
 import 'package:solana/anchor.dart' as solana_anchor;
 import 'package:solana/encoder.dart' as solana_encoder;
@@ -26,6 +29,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
   final _formKey = GlobalKey<FormState>();
   final nicknameController = TextEditingController();
   final bioController = TextEditingController();
@@ -62,121 +67,128 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
     return WillPopScope(
       onWillPop: () async => false,
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          shadowColor: Colors.transparent,
-          backgroundColor: Colors.transparent,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.chevron_left,
-              color: Colors.white,
-              size: 30,
-            ),
-            onPressed: () {
-              GoRouter.of(context).replace('/home');
-            },
-          ),
-        ),
-        body: SingleChildScrollView(
-          child: Container(
-            height: MediaQuery.of(context).size.height,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/images/ui/intro_jungle_bg.png"),
-                fit: BoxFit.cover,
+      child: ScaffoldMessenger(
+        key: scaffoldMessengerKey,
+        child: Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            shadowColor: Colors.transparent,
+            backgroundColor: Colors.transparent,
+            leading: IconButton(
+              icon: const Icon(
+                Icons.chevron_left,
+                color: Colors.white,
+                size: 30,
               ),
+              onPressed: () {
+                GoRouter.of(context).replace('/home');
+              },
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Center(
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(child: SizedBox()),
-                      GestureDetector(
-                        onTap: pickImage,
-                        child: Container(
-                          width: 150,
-                          height: 150,
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            image: DecorationImage(
-                              scale: 3,
-                              fit: localImgUrl.isNotEmpty
-                                  ? BoxFit.cover
-                                  : BoxFit.scaleDown,
-                              image: localImgUrl.isNotEmpty
-                                  ? (imageProfile.path.isNotEmpty
-                                      ? Image.file(
-                                          imageProfile,
-                                          fit: BoxFit.cover,
-                                        ).image
-                                      : Image.network(beforeImageProfile).image)
-                                  : const AssetImage(
-                                      'assets/images/icons/add_image.png'),
+          ),
+          body: SingleChildScrollView(
+            child: Container(
+              height: MediaQuery.of(context).size.height,
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage("assets/images/ui/intro_jungle_bg.png"),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(child: SizedBox()),
+                        GestureDetector(
+                          onTap: pickImage,
+                          child: Container(
+                            width: 150,
+                            height: 150,
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              image: DecorationImage(
+                                scale: 3,
+                                fit: localImgUrl.isNotEmpty
+                                    ? BoxFit.cover
+                                    : BoxFit.scaleDown,
+                                image: localImgUrl.isNotEmpty
+                                    ? (imageProfile.path.isNotEmpty
+                                        ? Image.file(
+                                            imageProfile,
+                                            fit: BoxFit.cover,
+                                          ).image
+                                        : (beforeImageProfile.isNotEmpty
+                                            ? Image.network(beforeImageProfile)
+                                                .image
+                                            : const AssetImage(
+                                                'assets/images/icons/add_image.png')))
+                                    : const AssetImage(
+                                        'assets/images/icons/add_image.png'),
+                              ),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 6),
                             ),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 6),
                           ),
                         ),
-                      ),
-                      const Expanded(child: SizedBox()),
-                      const TextBoxWidget(
-                          text:
-                              'Edit your profile to share it to our community ^.^'),
-                      const Expanded(child: SizedBox()),
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            TextFormField(
-                              controller: nicknameController,
-                              decoration: InputDecoration(
-                                labelText: 'Nickname',
-                                filled: true,
-                                fillColor: Colors.black,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                        const Expanded(child: SizedBox()),
+                        const TextBoxWidget(
+                            text:
+                                'Edit your profile to share it to our community ^.^'),
+                        const Expanded(child: SizedBox()),
+                        Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              TextFormField(
+                                controller: nicknameController,
+                                decoration: InputDecoration(
+                                  labelText: 'Nickname',
+                                  filled: true,
+                                  fillColor: Colors.black,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: bioController,
-                              decoration: InputDecoration(
-                                labelText: 'Bio',
-                                filled: true,
-                                fillColor: Colors.black,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: bioController,
+                                decoration: InputDecoration(
+                                  labelText: 'Bio',
+                                  filled: true,
+                                  fillColor: Colors.black,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: statusController,
-                              decoration: InputDecoration(
-                                labelText: 'Status',
-                                filled: true,
-                                fillColor: Colors.black,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: statusController,
+                                decoration: InputDecoration(
+                                  labelText: 'Status',
+                                  filled: true,
+                                  fillColor: Colors.black,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 30),
-                            IntroButtonWidget(
-                              text: 'Save',
-                              onPressed: () => onWant2Save(context),
-                            ),
-                          ],
+                              const SizedBox(height: 30),
+                              IntroButtonWidget(
+                                text: 'Save',
+                                onPressed: () => onWant2Save(context),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const Expanded(child: SizedBox()),
-                    ]),
+                        const Expanded(child: SizedBox()),
+                      ]),
+                ),
               ),
             ),
           ),
@@ -219,6 +231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ShowProps alert = ShowProps()
         ..text = 'Error get profile data ($e)'
         ..context = context
+        ..scaffoldMessengerKey = scaffoldMessengerKey
         ..backgroundColor = Colors.red;
 
       SnakAlertWidget().show(alert);
@@ -236,11 +249,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final imageTemp = File(image.path);
       setState(() {
         imageProfile = imageTemp;
+        beforeImageProfile = '';
       });
     } catch (e) {
       ShowProps alert = ShowProps()
         ..text = 'Failed to pick image: $e'
         ..context = context
+        ..scaffoldMessengerKey = scaffoldMessengerKey
         ..backgroundColor = Colors.red;
 
       SnakAlertWidget().show(alert);
@@ -290,6 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ShowProps alert = ShowProps()
         ..text = 'Error: Please fill all fields to continue'
         ..context = context
+        ..scaffoldMessengerKey = scaffoldMessengerKey
         ..backgroundColor = Colors.red;
 
       SnakAlertWidget().show(alert);
@@ -304,13 +320,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       String? cid = '';
 
-      if (imageProfile.uri.toString() != beforeImageProfile) {
+      if (!imageProfile.existsSync()) {
+        var bytes = await rootBundle.load('assets/images/icons/no_user.png');
+        String tempPath = (await getTemporaryDirectory()).path;
+        File file = File('$tempPath/profile.png');
+        final localImage = await file.writeAsBytes(
+            bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
+
+        setState(() {
+          imageProfile = localImage;
+        });
+      }
+
+      if (beforeImageProfile.isEmpty) {
         cid = await uploadToIPFS(imageProfile);
       } else {
         cid = beforeImageProfile.replaceAll(
             RegExp('https://quicknode.myfilebase.com/ipfs/'), '');
       }
-
       //save profile
       await dotenv.load(fileName: ".env");
 
@@ -384,24 +411,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
         commitment: solana.Commitment.confirmed,
       );
 
-      print('Tx successful with hash: $signature');
+      showResultMessage(signature);
 
       ShowProps alert = ShowProps()
         ..text = 'Profile updated'
         ..context = context
+        ..scaffoldMessengerKey = scaffoldMessengerKey
         ..backgroundColor = Colors.green;
 
       SnakAlertWidget().show(alert);
     } catch (e) {
-      final snackBar = SnackBar(
-        content: Text(
-          'Failed to save data: $e',
-          style: const TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.red,
-      );
+      ShowProps alert = ShowProps()
+        ..text = 'Failed to save data: $e'
+        ..context = context
+        ..backgroundColor = Colors.red
+        ..scaffoldMessengerKey = scaffoldMessengerKey;
 
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      SnakAlertWidget().show(alert);
     } finally {
       setState(() {
         _loading = false;
@@ -452,5 +478,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else {
       return null;
     }
+  }
+
+  showResultMessage(String transaction) {
+    showDialog<String>(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Profile updated'),
+        content: Text(
+            "You can review information on blockchain with this transaction reference: \n\n$transaction"),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              _launchUrl(transaction);
+            },
+            child: const Text('View transaction'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Ok"),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> _launchUrl(String transaction) async {
+  Uri url = Uri(
+      scheme: 'https',
+      host: 'explorer.solana.com',
+      path: '/tx/$transaction',
+      queryParameters: {'cluster': 'devnet'});
+  if (!await launchUrl(url)) {
+    throw Exception('Could not launch $url');
   }
 }

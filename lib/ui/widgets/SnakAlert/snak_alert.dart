@@ -4,6 +4,7 @@ class ShowProps {
   late BuildContext context;
   late String text;
   late Color backgroundColor;
+  late GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey;
 }
 
 class SnakAlertWidget {
@@ -15,6 +16,11 @@ class SnakAlertWidget {
       ),
       backgroundColor: props.backgroundColor,
     );
-    ScaffoldMessenger.of(props.context).showSnackBar(snackBar);
+
+    if (props.scaffoldMessengerKey != null) {
+      props.scaffoldMessengerKey?.currentState?.showSnackBar(snackBar);
+    } else {
+      ScaffoldMessenger.of(props.context).showSnackBar(snackBar);
+    }
   }
 }
