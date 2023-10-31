@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:solana_web3/solana_web3.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:solana/solana.dart';
@@ -9,8 +10,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 // import 'package:solana_common/borsh/borsh.dart' as solana_borsh;
-import '../../anchor_types/dino_score_info.dart' as anchor_types_dino;
-import '../../anchor_types/dino_game_info.dart' as anchor_types_dino_game;
+// import '../../anchor_types/dino_score_info.dart' as anchor_types_dino;
+// import '../../anchor_types/dino_game_info.dart' as anchor_types_dino_game;
+import 'dart:async';
+import 'package:solana_common/utils/buffer.dart' as solana_buffer;
+import 'package:solana/solana.dart' as solana;
+import '../../anchor_types/get_profile_info.dart'
+    as anchor_types_parameters_get;
+import '../../anchor_types/get_dino_score.dart' as anchor_types_dino_score;
+
 import '../../ui/widgets/widgets.dart';
 
 class RankingScreen extends StatefulWidget {
@@ -103,7 +111,9 @@ class _RankingScreenState extends State<RankingScreen> {
                                                   ),
                                           ),
                                     title: Text(
-                                        '${item.playerPubkey.substring(0, 5)}...${item.playerPubkey.substring(item.playerPubkey.length - 5, item.playerPubkey.length)}',
+                                        item.nickName.isNotEmpty
+                                            ? item.nickName
+                                            : '${item.playerPubkey.substring(0, 5)}...${item.playerPubkey.substring(item.playerPubkey.length - 5, item.playerPubkey.length)}',
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.black)),
@@ -146,73 +156,83 @@ class _RankingScreenState extends State<RankingScreen> {
       // Obtener todas las cuentas del programa
       final accounts = await client.rpcClient.getProgramAccounts(
         programId,
-        encoding: Encoding.jsonParsed,
+        encoding: Encoding.base64,
       );
 
       // Recorre las cuentas y muestra los datos
-      for (var account
-          in (accounts.length <= 15 ? accounts : accounts.sublist(0, 15))) {
-        final bytes = account.account.data as BinaryAccountData;
+      bool rankingCompleted = false;
 
-        //Get Score
-        final decoderDataScore = anchor_types_dino.DinoScoreArguments.fromBorsh(
-            bytes.data as Uint8List);
+      for (var account in accounts) {
+        try {
+          if (!rankingCompleted) {
+            final bytes = account.account.data as BinaryAccountData;
 
-        //Get Game Data
-        final decoderDataGame =
-            anchor_types_dino_game.DinoGameArguments.fromBorsh(
-                bytes.data as Uint8List);
+            //Get all data
+            final decodeAllData =
+                anchor_types_dino_score.GetScoreArguments.fromBorsh(
+                    bytes.data as Uint8List);
 
-        String? localImgUrl =
-            await storage.read(key: '${decoderDataGame.dinoPubkey}');
+            String? localImgUrl =
+                await storage.read(key: '${decodeAllData.dinokey}');
 
-        if (localImgUrl == null) {
-          final response = await http.post(
-              Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
-              headers: <String, String>{
-                'Content-Type': 'application/json',
-                "x-qn-api-version": '1'
-              },
-              body: jsonEncode({
-                "method": "qn_fetchNFTs",
-                "params": {
-                  "wallet": '${decoderDataGame.playerPubkey}',
-                  "page": 1,
-                  "perPage": 10
-                }
-              }));
+            final findprofileb =
+                await findprofile('${decodeAllData.playerkey}');
+            String nickName = '';
 
-          final dataResponse = jsonDecode(response.body);
+            if (findprofileb != null) {
+              nickName = findprofileb.nickname;
+            }
 
-          if (dataResponse.isNotEmpty) {
-            final arrayAssets = dataResponse['result']['assets'];
-            final indexNft = arrayAssets.indexWhere((item) =>
-                item["tokenAddress"] == '${decoderDataGame.dinoPubkey}');
-            String imgurl = indexNft > -1
-                ? arrayAssets[int.parse('$indexNft')]['imageUrl']
-                : '';
-
-            await storage.write(
-                key: '${decoderDataGame.dinoPubkey}', value: imgurl);
-
-            items2save.add(ItemsProps(
-                imageUrl: imgurl,
-                dinoPubkey: '${decoderDataGame.dinoPubkey}',
-                gamescore: '${decoderDataScore.gamescore}',
-                playerPubkey: '${decoderDataGame.playerPubkey}'));
-          } else {
-            items2save.add(ItemsProps(
+            ItemsProps data2save = ItemsProps(
+                playerPubkey: '${decodeAllData.playerkey}',
+                gamescore: '${decodeAllData.score}',
                 imageUrl: '',
-                dinoPubkey: '${decoderDataGame.dinoPubkey}',
-                gamescore: '${decoderDataScore.gamescore}',
-                playerPubkey: '${decoderDataGame.playerPubkey}'));
+                dinoPubkey: '${decodeAllData.dinokey}',
+                nickName: nickName);
+
+            if (localImgUrl == null) {
+              final response = await http.post(
+                  Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
+                  headers: <String, String>{
+                    'Content-Type': 'application/json',
+                    "x-qn-api-version": '1'
+                  },
+                  body: jsonEncode({
+                    "method": "qn_fetchNFTs",
+                    "params": {
+                      "wallet": '${decodeAllData.playerkey}',
+                      "page": 1,
+                      "perPage": 10
+                    }
+                  }));
+
+              final dataResponse = jsonDecode(response.body);
+
+              if (dataResponse.isNotEmpty) {
+                final arrayAssets = dataResponse['result']['assets'];
+                final indexNft = arrayAssets.indexWhere((item) =>
+                    item["tokenAddress"] == '${decodeAllData.dinokey}');
+                String imgurl = indexNft > -1
+                    ? arrayAssets[int.parse('$indexNft')]['imageUrl']
+                    : '';
+
+                await storage.write(
+                    key: '${decodeAllData.dinokey}', value: imgurl);
+
+                data2save.imageUrl = imgurl;
+              }
+            } else {
+              data2save.imageUrl = localImgUrl;
+            }
+
+            items2save.add(data2save);
+
+            if (items2save.length >= 15) {
+              rankingCompleted = true;
+            }
           }
-        } else {
-          items2save.add(ItemsProps(
-              imageUrl: localImgUrl,
-              dinoPubkey: '${decoderDataGame.dinoPubkey}',
-              gamescore: '${decoderDataScore.gamescore}',
-              playerPubkey: '${decoderDataGame.playerPubkey}'));
+        } catch (e) {
+          print('User error: $e');
         }
       }
 
@@ -235,6 +255,46 @@ class _RankingScreenState extends State<RankingScreen> {
       });
     }
   }
+
+  findprofile(String walletKey) async {
+    await dotenv.load(fileName: ".env");
+
+    SolanaClient? client;
+    client = SolanaClient(
+      rpcUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_URL'].toString()),
+      websocketUrl: Uri.parse(dotenv.env['QUICKNODE_RPC_WSS'].toString()),
+    );
+
+    final mainWalletSolana = PublicKey.fromString(walletKey);
+
+    final programId = dotenv.env['PROGRAM_ID'].toString();
+
+    final programIdPublicKey = solana.Ed25519HDPublicKey.fromBase58(programId);
+
+    final dprofilePda = await solana.Ed25519HDPublicKey
+        .findProgramAddress(programId: programIdPublicKey, seeds: [
+      solana_buffer.Buffer.fromString(dotenv.env['PROFILE_SEED'].toString()),
+      mainWalletSolana.toBytes(),
+    ]);
+
+    // Obtener todas las cuentas del programa
+    final accountprofile = await client.rpcClient
+        .getAccountInfo(
+          dprofilePda.toBase58(),
+          encoding: Encoding.base64,
+        )
+        .value;
+
+    if (accountprofile != null) {
+      final bytes = accountprofile.data as BinaryAccountData;
+      final decodeAllData =
+          anchor_types_parameters_get.GetProfileArguments.fromBorsh(
+              bytes.data as Uint8List);
+      return decodeAllData;
+    } else {
+      return null;
+    }
+  }
 }
 
 List prizeColors = List.generate(
@@ -247,12 +307,15 @@ class ItemsProps {
   String playerPubkey;
   String gamescore;
   String dinoPubkey;
+  String nickName;
 
-  ItemsProps(
-      {required this.playerPubkey,
-      required this.gamescore,
-      required this.imageUrl,
-      required this.dinoPubkey});
+  ItemsProps({
+    required this.playerPubkey,
+    required this.gamescore,
+    required this.imageUrl,
+    required this.dinoPubkey,
+    required this.nickName,
+  });
 }
 
 Future<void> _launchUrl() async {

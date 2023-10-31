@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:solana/solana.dart';
+import 'package:solana_web3/solana_web3.dart' as web3;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../ui/widgets/widgets.dart';
@@ -363,6 +365,19 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
 
       final mainWalletKey = await storage.read(key: 'mnemonic');
 
+      //Generate internal wallet
+      String dinoString = dotenv.env['DINO_KEY'].toString();
+      dinoString = dinoString.replaceAll(RegExp(r'\[|\]'), '');
+      List<String> valueStrings = dinoString.split(',');
+      List<int> integerList =
+          (valueStrings).map((value) => int.parse(value)).toList();
+      Uint8List secretKey = Uint8List.fromList(integerList);
+      final keypair = await web3.Keypair.fromSecretKey(secretKey);
+      //path: "m/44'/501'/0'/0'/0'",
+      String hdPath = dotenv.env['HD_PATH'].toString();
+      final walletdino = await solana.Ed25519HDKeyPair.fromSeedWithHdPath(
+          seed: keypair.secretKey, hdPath: hdPath);
+
       final mainWalletSolana = await solana.Ed25519HDKeyPair.fromMnemonic(
         mainWalletKey!,
       );
@@ -472,6 +487,8 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
                 pubKey: masterEditionAccountPda, isSigner: false),
             solana_encoder.AccountMeta.writeable(
                 pubKey: nftMetadataPda, isSigner: false),
+            solana_encoder.AccountMeta.writeable(
+                pubKey: walletdino.publicKey, isSigner: true),
           ],
           namespace: 'global',
         ),
@@ -479,7 +496,7 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
       final message = solana.Message(instructions: instructions);
       final signature = await client.sendAndConfirmTransaction(
         message: message,
-        signers: [mainWalletSolana],
+        signers: [mainWalletSolana, walletdino],
         commitment: solana.Commitment.confirmed,
       );
       print('Tx successful with hash: $signature');
@@ -490,7 +507,6 @@ class _MydinogrowScreenState extends State<MydinogrowScreen> {
         content: Text('Error: $e', style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.red,
       );
-
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     } finally {
       if (mounted) {
